@@ -61,9 +61,10 @@ def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
     # TODO: make work for 2 dimensions
     if pck1.ndims != 3:
         raise NotImplementedError
-    # TODO: allow inplace combination
     if pltout is None:
-        raise NotImplementedError
+        name_file1 = os.path.basename(pck1.pfile) 
+        name_file2 = os.path.basename(pck2.pfile)
+        pltout = os.path.join(os.getcwd(),name_file1+"_with_"+name_file2) 
     # Check if the plotfiles have the same grid
     assert pck1 == pck2
     # And max AMR Level
@@ -73,14 +74,17 @@ def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
     for lv in range(pck1.limit_level + 1):
         assert np.array_equal(bf_vec(pck1.cells[lv]['files']),
                               bf_vec(pck2.cells[lv]['files']))
-    # TODO: allow selected fields
     if (vars1 is not None) or (vars2 is not None):
-        raise NotImplementedError
-    # Compute the field list
-    # TODO: handle duplicates and assume they have the same
-    # value (keep only one of two)
-    cb_fields = list(pck1.fields.keys()) + list(pck2.fields.keys())
-    nfields = len(cb_fields)
+        cb_fields = vars1
+        for var in vars2:
+            if var not in cb_fields:
+                cb_fields.append(var)
+        nfields = len(cb_fields)
+    else:
+        # Compute the field list
+        # value (keep only one of two)
+        cb_fields = list(pck1.fields.keys()) + list(pck2.fields.keys())
+        nfields = len(cb_fields)
     # <<< End of parse input
 
     # make the output dir
@@ -274,3 +278,7 @@ def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
             # Write the Level path info
             hfile.write(f"Level_{lv}/Cell\n")
 
+pck1 = PlotfileCooker("./test_assets/example_plt_3d")
+pck2 = PlotfileCooker("./test_assets/example_plt_3d")
+
+combine(pck1,pck2,vars1=["temp"],vars2=["mag_vort"])
