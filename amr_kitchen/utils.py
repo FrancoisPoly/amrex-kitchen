@@ -22,7 +22,6 @@ def shape_from_header(h):
     """
     Infer the shape the box and the number of fields
     from the header in a plotfile binary file
-    (Only works for 3D plotfiles)
     h: string of the header line
     """
     start, stop, _, nfields = h.split()[-4:]
@@ -30,7 +29,10 @@ def shape_from_header(h):
     start = np.array(start.split('(')[-1].replace(')','').split(','), dtype=int)
     stop = np.array(stop.replace('(', '').replace(')', '').split(','), dtype=int)
     shape = stop - start + 1
-    total_shape = [shape[0], shape[1], shape[2], nfields]
+    if len(shape) == 2:
+        total_shape = [shape[0], shape[1], nfields]
+    elif len(shape) == 3:
+        total_shape = [shape[0], shape[1], shape[2], nfields]
     return total_shape
 
 def indices_from_header(h):
@@ -55,7 +57,12 @@ def header_from_indices(start, stop, nfields):
     nfields: number of fields in the plotfile
     """
     header_const = "FAB ((8, (64 11 52 0 1 12 0 1023)),(8, (8 7 6 5 4 3 2 1)))"
-    header_indices = (f"(({start[0]},{start[1]},{start[2]})"
+    if len(start) == 2:
+        header_indices = (f"(({start[0]},{start[1]})"
+                      f" ({stop[0]},{stop[1]})"
+                      f" (0,0)) {nfields}\n")
+    elif len(start) == 3:
+        header_indices = (f"(({start[0]},{start[1]},{start[2]})"
                       f" ({stop[0]},{stop[1]},{stop[2]})"
                       f" (0,0,0)) {nfields}\n")
     header = header_const + header_indices

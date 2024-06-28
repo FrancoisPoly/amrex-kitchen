@@ -28,6 +28,9 @@ def main():
     parser.add_argument(
         "--vars2", "-v2", type=list_of_strings,
         help=("""Variables (between " ") to keep from second plotfile"""))
+    parser.add_argument(
+            "--serial", "-s", action='store_true',
+            help="Flag to disable multiprocessing")
     
 
     args = parser.parse_args()
@@ -42,7 +45,8 @@ def main():
             path2=args.plotfile2,
             pltout=args.output,
             vars1=args.vars1,
-            vars2=args.vars2,)
+            vars2=args.vars2,
+            serial=args.serial,)
 
 if __name__ == "__main__":
     main()

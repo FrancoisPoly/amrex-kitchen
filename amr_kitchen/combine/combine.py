@@ -9,11 +9,13 @@ from amr_kitchen.utils import shape_from_header
 from amr_kitchen.utils import indices_from_header
 from amr_kitchen.utils import header_from_indices
 
+# TODO : Probably put all of that in a class 
 def parse_inputs(path1, 
                  path2, 
                  pltout=None, 
                  vars1=None, 
-                 vars2=None,):
+                 vars2=None,
+                 serial=False):
     """
     Treats the inputs from the parser 
     pck1 : PlotfileCooker instance of the first plotfile
@@ -25,9 +27,6 @@ def parse_inputs(path1,
     # Lets create PCK instances 
     pck1 = PlotfileCooker(path1)
     pck2 = PlotfileCooker(path2)
-    # TODO: make work for 2 dimensions
-    if pck1.ndims != 3:
-        raise NotImplementedError
     if pltout is None:
         file_names = []
         names = [pck1.pfile, pck2.pfile]
@@ -70,7 +69,7 @@ def parse_inputs(path1,
     col2.strain() 
 
     # Lets combine the two plotfiles
-    combine(PlotfileCooker("./temp1"),PlotfileCooker("./temp2"),nfields,pltout)
+    combine(PlotfileCooker("./temp1"),PlotfileCooker("./temp2"),nfields,serial,pltout)
      
 
 def parallel_combine_binary_files(args):
@@ -102,7 +101,7 @@ def parallel_combine_binary_files(args):
                     # Define the write binary header
                     hw = header_from_indices(idx1[0],
                            idx1[1],
-                           shape1[3] + shape2[3])
+                           shape1[-2] + shape2[-2])
                     # save the current offset
                     offsets.append(bfw.tell())
                     # Write the header and data
@@ -115,8 +114,10 @@ def parallel_combine_binary_files(args):
 
 def combine(plt1, 
             plt2, 
-            nfields, 
-            pltout=None,):
+            nfields,
+            serial, 
+            pltout=None,
+            ):
     """
     Function to combine plotfiles
     """
@@ -169,10 +170,16 @@ def combine(plt1,
                        "offst_r2":offsets_bf2,
                        "bfile_w":bfile_w}
             mp_calls.append(mp_call)
-        # Strain in parallel
-        pool = multiprocessing.Pool()
-        new_offsets = pool.map(parallel_combine_binary_files,
-                               mp_calls)
+        
+        if serial:
+            new_offsets = []
+            for call in mp_calls:
+                new_offsets.append(parallel_combine_binary_files(call))
+        else:
+            # Strain in parallel
+                pool = multiprocessing.Pool()
+                new_offsets = pool.map(parallel_combine_binary_files,
+                                    mp_calls)
         # Reorder the offsets to match the box order
         mapped_offsets = np.empty(len(plt1.boxes[lv]), dtype=int)
         for file_idxs, offsets in zip(box_index_map, new_offsets):
