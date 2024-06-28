@@ -2,10 +2,76 @@ import os
 import time
 import multiprocessing
 import numpy as np
+import shutil
 from amr_kitchen import PlotfileCooker
+from amr_kitchen.colander import Colander
 from amr_kitchen.utils import shape_from_header
 from amr_kitchen.utils import indices_from_header
 from amr_kitchen.utils import header_from_indices
+
+def parse_inputs(path1, 
+                 path2, 
+                 pltout=None, 
+                 vars1=None, 
+                 vars2=None,):
+    """
+    Treats the inputs from the parser 
+    pck1 : PlotfileCooker instance of the first plotfile
+    pck2 : PlotfileCooker instance of the second plotfile
+    pckout : Output plotfile dir
+    vars1 : Variables to keep in plotfile 1
+    vars2 : Variables to keep in plotfile 2
+    """
+    # Lets create PCK instances 
+    pck1 = PlotfileCooker(path1)
+    pck2 = PlotfileCooker(path2)
+    # TODO: make work for 2 dimensions
+    if pck1.ndims != 3:
+        raise NotImplementedError
+    if pltout is None:
+        file_names = []
+        names = [pck1.pfile, pck2.pfile]
+        # Program doesn't like if path name ends with "\" or "/"
+        for name in names:
+            if name[-1] in "\/":
+                file_names.append(os.path.basename(name[:-1]))
+            else:
+                file_names.append(os.path.basenamename)
+        pltout = os.path.join(os.getcwd(),file_names[0]+"_with_"+file_names[1]) 
+    # Check if the plotfiles have the same grid
+    assert pck1 == pck2
+    # And max AMR Level
+    assert pck1.limit_level == pck2.limit_level
+    # Also validate each box is in the same file name
+    bf_vec = np.vectorize(lambda s:os.path.split(s)[-1])
+    for lv in range(pck1.limit_level + 1):
+        assert np.array_equal(bf_vec(pck1.cells[lv]['files']),
+                              bf_vec(pck2.cells[lv]['files']))
+    # No fields defined = all fields    
+    if vars1 is None:
+        vars1 = list(pck1.fields.keys())
+    if vars2 is None:
+        vars2 = list(pck2.fields.keys())
+
+    # Kept fields 
+    cb_fields = vars1.copy()
+    for var in vars2:
+        if var not in cb_fields:
+            cb_fields.append(var)
+    # Number of kept fields
+    nfields = len(cb_fields)
+
+    # Making strained plotfiles 
+    pck1.make_dir_tree("./temp1")
+    col1 = Colander(path1, variables=vars1, output="./temp1",printing=False)
+    col1.strain()
+    pck2.make_dir_tree("./temp2")
+    col2 = Colander(path2, variables=cb_fields[len(vars1):], output="./temp2",printing=False)
+    col2.strain() 
+
+    # Lets combine the two plotfiles
+    combine(PlotfileCooker("./temp1"),PlotfileCooker("./temp2"),nfields,pltout)
+     
 
 def parallel_combine_binary_files(args):
     """
@@ -47,55 +113,22 @@ def parallel_combine_binary_files(args):
                     bfw.write(dataw.tobytes())
     return offsets
 
-
-def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
+def combine(plt1, 
+            plt2, 
+            nfields, 
+            pltout=None,):
     """
-    Function to combine fields between plotfiles
-    pck1 : PlotfileCooker instance of the first plotfile
-    pck2 : PlotfileCooker instance of the second plotfile
-    pckout : Output plotfile dir
-    vars1 : Variables to keep in plotfile 1
-    vars2 : Variables to keep in plotfile 2
+    Function to combine plotfiles
     """
-    # >>> TODO: Move this to a parse_input function
-    # TODO: make work for 2 dimensions
-    if pck1.ndims != 3:
-        raise NotImplementedError
-    if pltout is None:
-        name_file1 = os.path.basename(pck1.pfile) 
-        name_file2 = os.path.basename(pck2.pfile)
-        pltout = os.path.join(os.getcwd(),name_file1+"_with_"+name_file2) 
-    # Check if the plotfiles have the same grid
-    assert pck1 == pck2
-    # And max AMR Level
-    assert pck1.limit_level == pck2.limit_level
-    # Also validate each box is in the same file name
-    bf_vec = np.vectorize(lambda s:os.path.split(s)[-1])
-    for lv in range(pck1.limit_level + 1):
-        assert np.array_equal(bf_vec(pck1.cells[lv]['files']),
-                              bf_vec(pck2.cells[lv]['files']))
-    if (vars1 is not None) or (vars2 is not None):
-        cb_fields = vars1
-        for var in vars2:
-            if var not in cb_fields:
-                cb_fields.append(var)
-        nfields = len(cb_fields)
-    else:
-        # Compute the field list
-        # value (keep only one of two)
-        cb_fields = list(pck1.fields.keys()) + list(pck2.fields.keys())
-        nfields = len(cb_fields)
-    # <<< End of parse input
-
     # make the output dir
-    pck1.make_dir_tree(pltout)
+    plt1.make_dir_tree(pltout)
     # For each AMR level
-    for lv in range(pck1.limit_level + 1):
+    for lv in range(plt1.limit_level + 1):
         lvstart = time.time()
-        bfiles_paths_1 = np.array(pck1.cells[lv]["files"])
-        lv_offsets_1 = np.array(pck1.cells[lv]['offsets'])
-        bfiles_paths_2 = np.array(pck2.cells[lv]["files"])
-        lv_offsets_2 = np.array(pck2.cells[lv]['offsets'])
+        bfiles_paths_1 = np.array(plt1.cells[lv]["files"])
+        lv_offsets_1 = np.array(plt1.cells[lv]['offsets'])
+        bfiles_paths_2 = np.array(plt2.cells[lv]["files"])
+        lv_offsets_2 = np.array(plt2.cells[lv]['offsets'])
         ncells = len(bfiles_paths_1)
         # Should be true but would be bad if not
         assert len(bfiles_paths_1) == len(bfiles_paths_2)
@@ -141,23 +174,23 @@ def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
         new_offsets = pool.map(parallel_combine_binary_files,
                                mp_calls)
         # Reorder the offsets to match the box order
-        mapped_offsets = np.empty(len(pck1.boxes[lv]), dtype=int)
+        mapped_offsets = np.empty(len(plt1.boxes[lv]), dtype=int)
         for file_idxs, offsets in zip(box_index_map, new_offsets):
             mapped_offsets[file_idxs] = offsets
         # Rewrite the cell headers
         cell_header_w = os.path.join(os.getcwd(),
                                      pltout, 
-                                     pck1.cell_paths[lv],
+                                     plt1.cell_paths[lv],
                                      "Cell_H")
         # Header we read
         cell_header_r1 = os.path.join(os.getcwd(),
-                                      pck1.pfile,
-                                      pck1.cell_paths[lv], 
+                                      plt1.pfile,
+                                      plt1.cell_paths[lv], 
                                       'Cell_H')
         # Header we read
         cell_header_r2 = os.path.join(os.getcwd(),
-                                      pck2.pfile,
-                                      pck2.cell_paths[lv], 
+                                      plt2.pfile,
+                                      plt2.cell_paths[lv], 
                                       'Cell_H')
         with open(cell_header_w, 'w') as ch_w:
             with open(cell_header_r1, 'r') as ch_r1:
@@ -218,67 +251,65 @@ def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
                         max_vals2 = np.array(line2)
                         max_vals = np.concatenate([max_vals1, max_vals2])
                         ch_w.write(','.join(max_vals) + ',\n')
-        print(f"Strained Level {lv} ({time.time() - lvstart:.2f} s)")
+        print(f"Combined Level {lv} ({time.time() - lvstart:.2f} s)")
     # Rewrite the global header
     hfile_path = os.path.join(pltout, "Header")
     with open(hfile_path, 'w') as hfile:
         # Plotfile version
-        hfile.write(pck1.version)
+        hfile.write(plt1.version)
         # Number of fields
         hfile.write(f"{nfields}" + '\n')
         # Fields
-        for f in pck1.fields:
+        for f in plt1.fields:
             hfile.write(f + '\n')
-        for f in pck2.fields:
+        for f in plt2.fields:
             hfile.write(f + '\n')
         # Number of dimensions
-        hfile.write(f"{pck1.ndims}\n")
+        hfile.write(f"{plt1.ndims}\n")
         # Time
-        hfile.write(str(pck1.time) + '\n')
+        hfile.write(str(plt1.time) + '\n')
         # Max level
-        hfile.write(str(pck1.limit_level) + '\n')
+        hfile.write(str(plt1.limit_level) + '\n')
         # Lower bounds
-        hfile.write(' '.join([str(f) for f in pck1.geo_low]) + '\n')
+        hfile.write(' '.join([str(f) for f in plt1.geo_low]) + '\n')
         # Upper bounds
-        hfile.write(' '.join([str(f) for f in pck1.geo_high]) + '\n')
+        hfile.write(' '.join([str(f) for f in plt1.geo_high]) + '\n')
         # Refinement factors
-        factors = pck1.factors[:pck1.limit_level + 1]
+        factors = plt1.factors[:plt1.limit_level + 1]
         hfile.write(' '.join([str(f) for f in factors]) + '\n')
         # Grid sizes
         # Looks like ((0,0,0) (7,7,7) (0,0,0))
         tuples = []
-        for lv in range(pck1.limit_level + 1):
-            sizes = ",".join([str(s-1) for s in pck1.grid_sizes[lv]])
-            if pck1.ndims == 3:
+        for lv in range(plt1.limit_level + 1):
+            sizes = ",".join([str(s-1) for s in plt1.grid_sizes[lv]])
+            if plt1.ndims == 3:
                 tup = f"((0,0,0) ({sizes}) (0,0,0))"
-            elif pck1.ndims == 2:
+            elif plt1.ndims == 2:
                 tup = f"((0,0) ({sizes}) (0,0))"
             tuples.append(tup)
         hfile.write(' '.join(tuples) + '\n')
         # By level step numbers
-        step_numbers = pck1.step_numbers[:pck1.limit_level + 1]
+        step_numbers = plt1.step_numbers[:plt1.limit_level + 1]
         hfile.write(' '.join([str(n) for n in step_numbers]) + '\n')
         # Grid resolutions
-        for lv in range(pck1.limit_level + 1):
-            hfile.write(' '.join([str(dx) for dx in pck1.dx[lv]]) + '\n')
+        for lv in range(plt1.limit_level + 1):
+            hfile.write(' '.join([str(dx) for dx in plt1.dx[lv]]) + '\n')
         # Coordinate system
-        hfile.write(str(pck1.sys_coord))
+        hfile.write(str(plt1.sys_coord))
         # Zero for parsing
         hfile.write("0\n")
         # Write the boxes
-        for lv in range(pck1.limit_level + 1):
+        for lv in range(plt1.limit_level + 1):
             # Write the level info
-            hfile.write(f"{lv} {len(pck1.boxes[lv])} {pck1.time}\n")
+            hfile.write(f"{lv} {len(plt1.boxes[lv])} {plt1.time}\n")
             # Write the level step
-            hfile.write(f"{pck1.step_numbers[lv]}\n")
+            hfile.write(f"{plt1.step_numbers[lv]}\n")
             # Write the boxes
-            for box in pck1.boxes[lv]:
-                for d in range(pck1.ndims):
+            for box in plt1.boxes[lv]:
+                for d in range(plt1.ndims):
                     hfile.write(f"{box[d][0]} {box[d][1]}\n")
             # Write the Level path info
             hfile.write(f"Level_{lv}/Cell\n")
 
-pck1 = PlotfileCooker("./test_assets/example_plt_3d")
-pck2 = PlotfileCooker("./test_assets/example_plt_3d")
-
-combine(pck1,pck2,vars1=["temp"],vars2=["mag_vort"])
+    shutil.rmtree("temp1")
+    shutil.rmtree("temp2")

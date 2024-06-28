@@ -26,6 +26,9 @@ def main():
     parser.add_argument(
             "--output", "-o", type=str,
             help="Output path to store the filtered plotfile")
+    parser.add_argument(
+            "--printing", "-p", action='store_false',
+            help="Flag to disable printing in command line")
 
     args = parser.parse_args()
     """
@@ -42,7 +45,8 @@ def main():
     cld = Colander(plotfile=args.plotfile,
                    limit_level=args.limit_level,
                    output=args.output,
-                   variables=args.variables)
+                   variables=args.variables,
+                   printing=args.printing,)
 
     cld.strain()
 

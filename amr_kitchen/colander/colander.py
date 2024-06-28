@@ -87,7 +87,8 @@ class Colander(PlotfileCooker):
                  plotfile=None,
                  limit_level=None,
                  output=None,
-                 variables=None):
+                 variables=None,
+                 printing=True,):
         """
         Constructor for the Colander data container
         args : parsed command line arguments
@@ -102,6 +103,7 @@ class Colander(PlotfileCooker):
         # Store user inputs
         self.outdir = output
         self.kept_fields = []
+        self.printing =printing
         # Case for keeping all variables
         if (len(variables) == 1) and (variables[0] == "all"):
             self.kept_names = []
@@ -171,7 +173,8 @@ class Colander(PlotfileCooker):
 
             # Rewrite the cell headers
             self.update_cell_header(lv, cell_header_r, mapped_offsets)
-            print(f"Strained Level {lv} ({time.time() - lvstart:.2f} s)")
+            if self.printing:
+                print(f"Strained Level {lv} ({time.time() - lvstart:.2f} s)")
         # Rewrite the global header
         self.write_strained_global_header()
 
