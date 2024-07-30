@@ -1,13 +1,16 @@
-import os
-import time
 import multiprocessing
+import os
 import shutil
-import numpy as np
+import time
+
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+
 from amr_kitchen import PlotfileCooker
+
+from .blades import plate_box, slice_box
 from .utils import expand_array
-from .blades import slice_box, plate_box
 
 
 class Mandoline(PlotfileCooker):
@@ -15,13 +18,12 @@ class Mandoline(PlotfileCooker):
     Class containing the slicing data to supply to the
     multiprocessing function
     """
-    coordnames = {0:'x',
-                  1:'y',
-                  2:'z',
-                  3:'2D'}
 
-    def __init__(self, plotfile, fields=None, limit_level=None,
-                 serial=False, verbose=None):
+    coordnames = {0: "x", 1: "y", 2: "z", 3: "2D"}
+
+    def __init__(
+        self, plotfile, fields=None, limit_level=None, serial=False, verbose=None
+    ):
         """
         Constructor for the mandoline object
         ----
@@ -35,7 +37,7 @@ class Mandoline(PlotfileCooker):
                      the center of the domain
 
         limit_level: Maximum data level used to create the slice, defaults
-                     to the maximum level in the file 
+                     to the maximum level in the file
 
         serial:      Wheter or not to run the slicing function in parallel
 
@@ -64,8 +66,7 @@ class Mandoline(PlotfileCooker):
         self.cy = None
         self.pos = None
 
-    def slice(self, normal=None, pos=None, outfile=None, fformat=None, 
-              **pltkwargs):
+    def slice(self, normal=None, pos=None, outfile=None, fformat=None, **pltkwargs):
         """
         Slicing function of the Mandoline class
         ____
@@ -74,14 +75,14 @@ class Mandoline(PlotfileCooker):
         outfile: output file for the slice. If none is supplied one is generated
                  based on the slice position, direction and included fields
         fformat: output format of the slice, either image for a .png plot of the
-                 slice, array for saving a 2D array with the field data 
+                 slice, array for saving a 2D array with the field data
                  broadcasted to an uniform grid, or plotfile to create a 2D AMReX
                  plotfile.
         ----
         pltkwargs are keyword arguments passed to the plotting function:
-            uselog: (bool) use a log scale for the colormap (defaults to False) 
-            cmap: The matplotlib colormap to use (defaults to jet) 
-            vmin: Minimum value to bound the colormap (defaults to min(data)) 
+            uselog: (bool) use a log scale for the colormap (defaults to False)
+            cmap: The matplotlib colormap to use (defaults to jet)
+            vmin: Minimum value to bound the colormap (defaults to min(data))
             vmax: Maximum value to bound the colormap (defaults to max(data))
         """
         if self.ndims == 2:
@@ -91,7 +92,9 @@ class Mandoline(PlotfileCooker):
             normal = self.cn
         if pos is None:
             pos = self.pos
-        self.cn, self.cx, self.cy, self.pos = self.define_slicing_coordinates(normal, pos)
+        self.cn, self.cx, self.cy, self.pos = self.define_slicing_coordinates(
+            normal, pos
+        )
         # Default output is user friendly image
         if fformat is None:
             fformat = "image"
@@ -106,7 +109,7 @@ class Mandoline(PlotfileCooker):
             pool_inputs = self.compute_mpinput_3d(Lv)
             # Read the data in parallel (or serial)
             # The box reader returns the slice at both sides of the slicing
-            # Plane if available (i.e. not a boundary, or between boxes). 
+            # Plane if available (i.e. not a boundary, or between boxes).
             # This allows handling the case when the slice is between boxes
             # This function interpolate between the two planes and returns
             if self.serial:
@@ -116,8 +119,7 @@ class Mandoline(PlotfileCooker):
                     plane_data.append(pool.map(slice_box, pool_inputs))
 
             if self.v > 0:
-                print(f"Time to read Lv {Lv}:", 
-                      np.around(time.time() - read_start, 2))
+                print(f"Time to read Lv {Lv}:", np.around(time.time() - read_start, 2))
 
         # Interpolation timer
         interp_start = time.time()
@@ -137,12 +139,11 @@ class Mandoline(PlotfileCooker):
             if fformat == "image":
                 self.plot_slice(all_data, outfile, **pltkwargs)
 
-
         # For plotfiles we keep the data needed to reconstruct the multilevel grid
         elif fformat == "plotfile":
             output_start = time.time()
             # Interpolate for each level
-            all_data_bylevel, indexes, headers  = self.interpolate_bylevel(plane_data)
+            all_data_bylevel, indexes, headers = self.interpolate_bylevel(plane_data)
             # Define the plotfile name
             if outfile is None:
                 outfile = self.default_output_path()
@@ -154,21 +155,21 @@ class Mandoline(PlotfileCooker):
                 os.mkdir(outfile)
             # Rewrite the header
             with open(os.path.join(outfile, "Header"), "w") as hfile:
-                self.write_2d_slice_global_header(hfile,
-                                                  self.fields_in_slice(),
-                                                  indexes)
+                self.write_2d_slice_global_header(
+                    hfile, self.fields_in_slice(), indexes
+                )
             # Write the level data
             for lv in range(self.limit_level + 1):
-                self.write_cell_data_at_level(outfile,
-                                              lv,
-                                              all_data_bylevel[lv],
-                                              indexes[lv])
+                self.write_cell_data_at_level(
+                    outfile, lv, all_data_bylevel[lv], indexes[lv]
+                )
             if self.v > 0:
-                print("Time to save AMReX plotfile: ", 
-                      np.around(time.time() - output_start, 2))
+                print(
+                    "Time to save AMReX plotfile: ",
+                    np.around(time.time() - output_start, 2),
+                )
 
-    def thick_slice(self, normal=None, pos=None, 
-                    outfile=None, thickness=None):
+    def thick_slice(self, normal=None, pos=None, outfile=None, thickness=None):
         """
         Non interpolated thick slices saved as AMReX plotfiles
         """
@@ -176,19 +177,19 @@ class Mandoline(PlotfileCooker):
         # At the lowest level in the given thickness
         # Define the lowest Level grid in the normal
         # direction:
-        self.cn, self.cx, self.cy, self.pos = self.define_slicing_coordinates(normal, pos)
+        self.cn, self.cx, self.cy, self.pos = self.define_slicing_coordinates(
+            normal, pos
+        )
         geo_lo = self.geo_low[self.cn] + self.dx[0][self.cn]
         geo_hi = self.geo_high[self.cn] - self.dx[0][self.cn]
-        ngrid = np.arange(geo_lo, geo_hi, 
-                          self.grid_sizes[0][self.cn])
+        ngrid = np.arange(geo_lo, geo_hi, self.grid_sizes[0][self.cn])
         print(ngrid)
-
 
     def plate(self, outfile=None, fformat=None, **pltkwargs):
         """
         Alternate function to "slice" 2D plotfiles
         This is a conversion to uniform covering grid
-        
+
         output: output path name
 
         fformat: output file format "image", "array", "plotfile"
@@ -196,10 +197,9 @@ class Mandoline(PlotfileCooker):
         if fformat = "return" the array output is returned without
         saving it to the output path
         """
-        #TODO: Use colander to remove fields from 2D plotfiles
+        # TODO: Use colander to remove fields from 2D plotfiles
         if fformat == "plotfile":
-            raise NotImplementedError("TODO (you can use amrex-kitchen/"
-                                      "colander")
+            raise NotImplementedError("TODO (you can use amrex-kitchen/" "colander")
         # Define the output
         if outfile is None:
             outfile = self.default_output_path()
@@ -222,8 +222,7 @@ class Mandoline(PlotfileCooker):
                 plane_data.append(pool.map(plate_box, pool_inputs))
 
             if self.v > 0:
-                print(f"Time to read Lv {Lv}:", 
-                      np.around(time.time() - read_start, 2))
+                print(f"Time to read Lv {Lv}:", np.around(time.time() - read_start, 2))
 
         # Broadcast the data to empty arrays
         all_data = [self.limit_level_arr() for _ in range(self.nfidxs)]
@@ -236,15 +235,15 @@ class Mandoline(PlotfileCooker):
         for Lv in range(self.limit_level + 1):
             for out in plane_data[Lv]:
                 # Add the slices if they are defined
-                xa, xo = out['sx']  # x slice
-                ya, yo = out['sy']  # y slice
+                xa, xo = out["sx"]  # x slice
+                ya, yo = out["sy"]  # y slice
                 # add the field data
                 for i in range(self.nfidxs):
-                    all_data[i][xa:xo, ya:yo] = out['data'][i]
+                    all_data[i][xa:xo, ya:yo] = out["data"][i]
                 # add the normal coordinate
                 # broadcast the grid level to the grid if needed
                 if self.do_grid:
-                    grid_level[xa:xo, ya:yo] = out['level']
+                    grid_level[xa:xo, ya:yo] = out["level"]
 
         if self.do_grid:
             all_data.append(grid_level)
@@ -265,10 +264,9 @@ class Mandoline(PlotfileCooker):
         elif fformat == "image":
             self.plot_slice(all_data, outfile, **pltkwargs)
 
-
     def infer_figure_size(self):
         """
-        Determine a good figure size given 
+        Determine a good figure size given
         the dataset aspect ratio
         """
         # Aspect ratio
@@ -285,11 +283,12 @@ class Mandoline(PlotfileCooker):
             size_x = int(size_y * aspect)
             figsize = (size_x + 1, size_y)
         else:
-            figsize=(8, 6)
+            figsize = (8, 6)
         return figsize
 
-    def plot_slice(self, all_data, outfile, 
-                   uselog=False, cmap=None, vmin=None, vmax=None):
+    def plot_slice(
+        self, all_data, outfile, uselog=False, cmap=None, vmin=None, vmax=None
+    ):
         """
         Plot the slice data using matplotlib
         """
@@ -306,11 +305,11 @@ class Mandoline(PlotfileCooker):
         if cmap in plt.colormaps():
             pass
         else:
-            cmap = 'jet'
+            cmap = "jet"
         figsize = self.infer_figure_size()
 
         # A figure per field
-        plot_names = [f for f in pltdata if f not in ['x', 'y']]
+        plot_names = [f for f in pltdata if f not in ["x", "y"]]
         for name in plot_names:
 
             if self.v > 0:
@@ -321,21 +320,23 @@ class Mandoline(PlotfileCooker):
 
             # Set face color to colormap minimum so masked
             # Values look good
-            plt.gca().set_facecolor(plt.cm.get_cmap(cmap)(0)) 
+            plt.gca().set_facecolor(plt.cm.get_cmap(cmap)(0))
 
             # Plot the slice
-            plt.pcolormesh(pltdata['x'],
-                           pltdata['y'],
-                           pltdata[name],
-                           vmin=vmin,
-                           vmax=vmax,
-                           norm=norm,
-                           cmap=cmap)
+            plt.pcolormesh(
+                pltdata["x"],
+                pltdata["y"],
+                pltdata[name],
+                vmin=vmin,
+                vmax=vmax,
+                norm=norm,
+                cmap=cmap,
+            )
 
-            # Add a colorbar  
-            plt.colorbar(label=f'{name}')
+            # Add a colorbar
+            plt.colorbar(label=f"{name}")
             ax = plt.gca()
-            ax.set_aspect('equal')
+            ax.set_aspect("equal")
             ax.set_xlabel(f"{self.coordnames[self.cx]} [m]")
             ax.set_ylabel(f"{self.coordnames[self.cy]} [m]")
 
@@ -345,7 +346,7 @@ class Mandoline(PlotfileCooker):
             if self.v > 0:
                 save_start = time.time()
                 print(f"Saving {name} plot...")
-            
+
             # save and close
             if outfile is None:
                 outfile = self.default_output_path(fieldname=name)
@@ -355,7 +356,6 @@ class Mandoline(PlotfileCooker):
             if self.v > 0:
                 print(f"Done! ({np.around(time.time() - save_start, 2)} s)")
 
-
     def compute_mpinput_2d(self, lv):
         """
         Compute the multiprocessing input for 2D plotfiles
@@ -363,22 +363,26 @@ class Mandoline(PlotfileCooker):
         """
         # Multiprocessing inputs
         pool_inputs = []
-        for indexes, cfile, offset, box in zip(self.cells[lv]['indexes'],
-                                               self.cells[lv]['files'],
-                                               self.cells[lv]['offsets'],
-                                               self.boxes[lv]):
+        for indexes, cfile, offset, box in zip(
+            self.cells[lv]["indexes"],
+            self.cells[lv]["files"],
+            self.cells[lv]["offsets"],
+            self.boxes[lv],
+        ):
             # Everything needed by the slice reader
-            p_in  = {'cx':0,
-                     'cy':1,
-                     'dx':self.dx,
-                     'limit_level':self.limit_level,
-                     'fidxs':self.fidxs,
-                     'Lv':lv,
-                     'indexes':indexes,
-                     'cfile':cfile,
-                     'offset':offset,
-                     'box':box}
-            pool_inputs.append(p_in) # Add to inputs
+            p_in = {
+                "cx": 0,
+                "cy": 1,
+                "dx": self.dx,
+                "limit_level": self.limit_level,
+                "fidxs": self.fidxs,
+                "Lv": lv,
+                "indexes": indexes,
+                "cfile": cfile,
+                "offset": offset,
+                "box": box,
+            }
+            pool_inputs.append(p_in)  # Add to inputs
         return pool_inputs
 
     def compute_mpinput_3d(self, lv):
@@ -390,8 +394,7 @@ class Mandoline(PlotfileCooker):
         # For each box in that level
         for idx, box in enumerate(self.boxes[lv]):
             # Check if the box intersect the slicing plane
-            if (box[self.cn][0] <= self.pos and 
-                box[self.cn][1] >= self.pos):
+            if box[self.cn][0] <= self.pos and box[self.cn][1] >= self.pos:
                 # ----
                 # Here, intersecting boxes at each level
                 # Are added to the slice, even if there are
@@ -402,20 +405,22 @@ class Mandoline(PlotfileCooker):
                 # Completely covered is a nightmare (and slower).
                 # -----
                 # Everything needed by the slice reader
-                p_in  = {'cx':self.cx,
-                         'cy':self.cy,
-                         'cn':self.cn,
-                         'dx':self.dx,
-                         'pos':self.pos,
-                         'limit_level':self.limit_level,
-                         'fidxs':self.fidxs,
-                         'Lv':lv,
-                         'bidx':idx,
-                         'indexes':self.cells[lv]['indexes'][idx],
-                         'cfile':self.cells[lv]['files'][idx],
-                         'offset':self.cells[lv]['offsets'][idx],
-                         'box':box}
-                pool_inputs.append(p_in) # Add to inputs
+                p_in = {
+                    "cx": self.cx,
+                    "cy": self.cy,
+                    "cn": self.cn,
+                    "dx": self.dx,
+                    "pos": self.pos,
+                    "limit_level": self.limit_level,
+                    "fidxs": self.fidxs,
+                    "Lv": lv,
+                    "bidx": idx,
+                    "indexes": self.cells[lv]["indexes"][idx],
+                    "cfile": self.cells[lv]["files"][idx],
+                    "offset": self.cells[lv]["offsets"][idx],
+                    "box": box,
+                }
+                pool_inputs.append(p_in)  # Add to inputs
         return pool_inputs
 
     def define_slicing_coordinates(self, normal=None, pos=None):
@@ -427,7 +432,7 @@ class Mandoline(PlotfileCooker):
         if self.ndims == 2:
             cx, cy = 0, 1
             cn = 3
-            pos = 0.
+            pos = 0.0
         # 3D
         else:
             # Define the normale and slice plane coordinates
@@ -441,17 +446,20 @@ class Mandoline(PlotfileCooker):
             # define and store the slice position
             if pos is None:
                 # Domain center
-                pos = (self.geo_high[cn] - self.geo_low[cn])/2
+                pos = (self.geo_high[cn] - self.geo_low[cn]) / 2
             else:
-                if (pos < self.geo_low[cn] or
-                    pos > self.geo_high[cn]):
+                if pos < self.geo_low[cn] or pos > self.geo_high[cn]:
                     coord = self.coordnames[cn]
                     low = self.geo_low[cn]
                     high = self.geo_high[cn]
-                    raise ValueError(("Slicing plane at "
-                                     f"{coord} = {pos} "
-                                      "is outside the domain bounds: "
-                                     f"{low} < {coord} < {high}"))
+                    raise ValueError(
+                        (
+                            "Slicing plane at "
+                            f"{coord} = {pos} "
+                            "is outside the domain bounds: "
+                            f"{low} < {coord} < {high}"
+                        )
+                    )
 
         return cn, cx, cy, pos
 
@@ -463,13 +471,13 @@ class Mandoline(PlotfileCooker):
         # Find out what to slice
         # Default field (same as AMReX fsnapshot.cpp)
         if fields is None:
-            fields = ['density']
+            fields = ["density"]
         # String input (for outside the cli)
         if type(fields) == str:
             fields = [fields]
         # Special case for all fields
-        if 'all' in fields:
-            fields = ['all']
+        if "all" in fields:
+            fields = ["all"]
             fidxs = list(range(self.nvars))
             # With grid level
             fidxs.append(None)
@@ -478,7 +486,7 @@ class Mandoline(PlotfileCooker):
             fidxs = []
             for f in fields:
                 # Special case for grid_data
-                if f == 'grid_level':
+                if f == "grid_level":
                     fidxs.append(None)
                 # Special case for all fields
                 else:
@@ -498,18 +506,19 @@ class Mandoline(PlotfileCooker):
         """
         # Make a dict with output
         x_grid, y_grid = self.slice_plane_coordinates()
-        output = {'x': x_grid,
-                  'y': y_grid,}
+        output = {
+            "x": x_grid,
+            "y": y_grid,
+        }
         # Store in output
         for i, name in enumerate(self.fields_in_slice()):
             output[name] = all_data[i]
 
         # Works if only grid_level
         if self.do_grid:
-            output['grid_level'] = all_data[-1]
+            output["grid_level"] = all_data[-1]
 
         return output
-
 
     def fields_in_slice(self):
         """
@@ -526,14 +535,14 @@ class Mandoline(PlotfileCooker):
         """
         # Split the input file
         outroot, plotname = os.path.split(self.pfile)
-        plotnum = "_" + plotname.replace("plt", '').replace('_', '')
+        plotnum = "_" + plotname.replace("plt", "").replace("_", "")
         if self.ndims == 3:
             # Slice fraction in domain
             width = self.geo_high[self.cn] - self.geo_low[self.cn]
             pos_frac = self.pos / width
             # Looks like Sx05000density45000
             slicename = f"S{self.coordnames[self.cn]}"
-            pos_string = f"{pos_frac:.4f}".replace('.', '')
+            pos_string = f"{pos_frac:.4f}".replace(".", "")
             slicename = slicename + pos_string
         elif self.ndims == 2:
             # Looks like S2Ddensity45000
@@ -541,12 +550,12 @@ class Mandoline(PlotfileCooker):
         # Single field slice
         if fieldname is not None:
             fieldstring = fieldname
-            fieldstring = fieldstring.replace('(', '').replace(')', '')
+            fieldstring = fieldstring.replace("(", "").replace(")", "")
             fieldstring = fieldstring[:7]
             slicename = slicename + fieldstring
         elif len(self.slicefields) == 1:
             fieldstring = self.slicefields[0]
-            fieldstring = fieldstring.replace('(', '').replace(')', '')
+            fieldstring = fieldstring.replace("(", "").replace(")", "")
             fieldstring = fieldstring[:7]
             slicename = slicename + fieldstring
         # Multi field slice
@@ -562,8 +571,9 @@ class Mandoline(PlotfileCooker):
             if self.serial:
                 pass
             elif ltime < 0.1:
-                print("This plotfile seems small you may consider "
-                      "reading it in serial")
+                print(
+                    "This plotfile seems small you may consider " "reading it in serial"
+                )
             else:
                 pass
 
@@ -572,8 +582,7 @@ class Mandoline(PlotfileCooker):
         Return an empty numpy array with the dimensions of the
         limit_level grid
         """
-        if (self.cx is None or
-            self.cy is None):
+        if self.cx is None or self.cy is None:
             self.cn, self.cx, self.cy, self.pos = self.define_slicing_coordinates()
 
         shape = self.grid_sizes[self.limit_level][[self.cx, self.cy]]
@@ -587,85 +596,91 @@ class Mandoline(PlotfileCooker):
         (For orthogonal planes)
         """
         # Array for the "left" side of the plane (could be down whatever)
-        left = {'data':[self.limit_level_arr() for _ in range(self.nfidxs)],
-                'normal':self.limit_level_arr()}
+        left = {
+            "data": [self.limit_level_arr() for _ in range(self.nfidxs)],
+            "normal": self.limit_level_arr(),
+        }
         # Array for the "right" or up side of the plane
         # The only convention is that "left" < slice_coordinate < "right"
-        right = {'data':[self.limit_level_arr() for _ in range(self.nfidxs)],
-                'normal':self.limit_level_arr()}
+        right = {
+            "data": [self.limit_level_arr() for _ in range(self.nfidxs)],
+            "normal": self.limit_level_arr(),
+        }
 
         if self.do_grid:
-            grid_level = {'left':self.limit_level_arr(),
-                          'right':self.limit_level_arr()}
+            grid_level = {
+                "left": self.limit_level_arr(),
+                "right": self.limit_level_arr(),
+            }
         else:
             grid_level = None
 
         # Parse the multiprocessing output
         # Do levels sequentially to update with finer data
         for Lv in range(self.limit_level + 1):
-            first_grid_pt = self.geo_low[self.cn] + self.dx[Lv][self.cn]/2
-            last_grid_pt = self.geo_high[self.cn] - self.dx[Lv][self.cn]/2
+            first_grid_pt = self.geo_low[self.cn] + self.dx[Lv][self.cn] / 2
+            last_grid_pt = self.geo_high[self.cn] - self.dx[Lv][self.cn] / 2
             for output in plane_data[Lv]:
                 # Add the slices if they are defined
                 if output[0] is not None:
                     out = output[0]
-                    xa, xo = out['sx']  # x slice
-                    ya, yo = out['sy']  # y slice
+                    xa, xo = out["sx"]  # x slice
+                    ya, yo = out["sy"]  # y slice
                     # add the field data
-                    for i, arr in enumerate(left['data']):
-                        left['data'][i][xa:xo, ya:yo] = out['data'][i]
+                    for i, arr in enumerate(left["data"]):
+                        left["data"][i][xa:xo, ya:yo] = out["data"][i]
                     # add the normal coordinate
-                    left['normal'][xa:xo, ya:yo] = out['normal']
+                    left["normal"][xa:xo, ya:yo] = out["normal"]
                     # broadcast the grid level to the grid if needed
                     if self.do_grid:
-                        grid_level['left'][xa:xo, ya:yo] = out['level']
+                        grid_level["left"][xa:xo, ya:yo] = out["level"]
                     # Case when the slice plane is after the last grid
-                    if np.isclose(out['normal'], last_grid_pt):
+                    if np.isclose(out["normal"], last_grid_pt):
                         # add the field data
-                        for i, arr in enumerate(right['data']):
-                            right['data'][i][xa:xo, ya:yo] = out['data'][i]
+                        for i, arr in enumerate(right["data"]):
+                            right["data"][i][xa:xo, ya:yo] = out["data"][i]
                         # add the normal coordinate
-                        right['normal'][xa:xo, ya:yo] = out['normal']
-                        
+                        right["normal"][xa:xo, ya:yo] = out["normal"]
+
                 # Same for the right side
                 if output[1] is not None:
                     out = output[1]
-                    xa, xo = out['sx']  # x slice
-                    ya, yo = out['sy']  # y slice
-                    for i, arr in enumerate(left['data']):
-                        right['data'][i][xa:xo, ya:yo] = out['data'][i]
-                    right['normal'][xa:xo, ya:yo] = out['normal']
+                    xa, xo = out["sx"]  # x slice
+                    ya, yo = out["sy"]  # y slice
+                    for i, arr in enumerate(left["data"]):
+                        right["data"][i][xa:xo, ya:yo] = out["data"][i]
+                    right["normal"][xa:xo, ya:yo] = out["normal"]
                     # broadcast the grid level to the grid if needed
                     if self.do_grid:
-                        grid_level['right'][xa:xo, ya:yo] = out['level']
+                        grid_level["right"][xa:xo, ya:yo] = out["level"]
                     # Case when the slice plane is before the first grid
-                    if np.isclose(out['normal'], first_grid_pt):
+                    if np.isclose(out["normal"], first_grid_pt):
                         # add the field data
-                        for i, arr in enumerate(left['data']):
-                            left['data'][i][xa:xo, ya:yo] = out['data'][i]
+                        for i, arr in enumerate(left["data"]):
+                            left["data"][i][xa:xo, ya:yo] = out["data"][i]
                         # add the normal coordinate
-                        left['normal'][xa:xo, ya:yo] = out['normal']
+                        left["normal"][xa:xo, ya:yo] = out["normal"]
         # Do the linear interpolation if normals are not the same
         # Empty arrays for the final data
         all_data = []
         # Boolean slicing array for when the points are the same
-        bint = ~np.isclose(left['normal'], right['normal'])
+        bint = ~np.isclose(left["normal"], right["normal"])
         # Iterate with the number of fields
         for i in range(self.nfidxs):
             data = self.limit_level_arr()
             # Linear interpolation
-            term1 = left['data'][i][bint] * (right['normal'][bint] - self.pos) 
-            term2 = right['data'][i][bint] * (self.pos - left['normal'][bint])
-            term3 = right['normal'][bint] - left['normal'][bint]
-            data[bint] =  (term1 + term2) / term3
+            term1 = left["data"][i][bint] * (right["normal"][bint] - self.pos)
+            term2 = right["data"][i][bint] * (self.pos - left["normal"][bint])
+            term3 = right["normal"][bint] - left["normal"][bint]
+            data[bint] = (term1 + term2) / term3
             # Could be either
-            data[~bint] = right['data'][i][~bint]
+            data[~bint] = right["data"][i][~bint]
             # For some reason
             all_data.append(data.T)
 
         if self.do_grid:
             # Concatenate both sides
-            all_levels = np.stack([grid_level['right'], grid_level['left']])
+            all_levels = np.stack([grid_level["right"], grid_level["left"]])
             # I guess the min is better for debuging
             # All things considered they should be pretty similar
             all_data.append(np.min(all_levels, axis=0).T)
@@ -677,11 +692,13 @@ class Mandoline(PlotfileCooker):
         to be able to save the data to an amrex plotfile
         """
         # Base structure to store interpolated data
-        lvarr = {'data':[self.limit_level_arr() for _ in range(self.nfidxs)],
-                 'normal':self.limit_level_arr()}
+        lvarr = {
+            "data": [self.limit_level_arr() for _ in range(self.nfidxs)],
+            "normal": self.limit_level_arr(),
+        }
         # An array for each level (left side)
         left = [lvarr for _ in range(self.limit_level + 1)]
-        
+
         # Array for the "right" or up side of the plane
         # The only convention is that "left" < slice_coordinate < "right"
         right = [lvarr for _ in range(self.limit_level + 1)]
@@ -699,25 +716,25 @@ class Mandoline(PlotfileCooker):
                 # Add the slices if they are defined
                 if output[0] is not None:
                     out = output[0]
-                    xa, xo = out['sx']  # x slice
-                    ya, yo = out['sy']  # y slice
+                    xa, xo = out["sx"]  # x slice
+                    ya, yo = out["sy"]  # y slice
                     # add the field data
                     for i in range(self.nfidxs):
-                        left[lv]['data'][i][xa:xo, ya:yo] = out['data'][i]
+                        left[lv]["data"][i][xa:xo, ya:yo] = out["data"][i]
                     # add the normal coordinate
-                    left[lv]['normal'][xa:xo, ya:yo] = out['normal']
+                    left[lv]["normal"][xa:xo, ya:yo] = out["normal"]
 
                 # Same for the right side
                 if output[1] is not None:
                     out = output[1]
-                    xa, xo = out['sx']  # x slice
-                    ya, yo = out['sy']  # y slice
+                    xa, xo = out["sx"]  # x slice
+                    ya, yo = out["sy"]  # y slice
                     # every field
                     for i in range(self.nfidxs):
-                        right[lv]['data'][i][xa:xo, ya:yo] = out['data'][i]
+                        right[lv]["data"][i][xa:xo, ya:yo] = out["data"][i]
                     # normal
-                    right[lv]['normal'][xa:xo, ya:yo] = out['normal']
-                
+                    right[lv]["normal"][xa:xo, ya:yo] = out["normal"]
+
             box_indexes.append(lv_box_indexes)
             box_headers.append(lv_box_headers)
 
@@ -728,20 +745,22 @@ class Mandoline(PlotfileCooker):
         for lv in range(self.limit_level + 1):
             level_data = []
             # Boolean array where the normals are equal
-            bint = ~np.isclose(left[lv]['normal'], right[lv]['normal'])
+            bint = ~np.isclose(left[lv]["normal"], right[lv]["normal"])
             # Interpolate each field
             for i in range(self.nfidxs):
                 # Empty array
                 data = self.limit_level_arr()
                 # Linear interpolation
-                term1 = left[lv]['data'][i][bint]\
-                        * (right[lv]['normal'][bint] - self.pos) 
-                term2 = right[lv]['data'][i][bint]\
-                        * (self.pos - left[lv]['normal'][bint])
-                term3 = right[lv]['normal'][bint] - left[lv]['normal'][bint]
-                data[bint] =  (term1 + term2) / term3
+                term1 = left[lv]["data"][i][bint] * (
+                    right[lv]["normal"][bint] - self.pos
+                )
+                term2 = right[lv]["data"][i][bint] * (
+                    self.pos - left[lv]["normal"][bint]
+                )
+                term3 = right[lv]["normal"][bint] - left[lv]["normal"][bint]
+                data[bint] = (term1 + term2) / term3
                 # Non interpolated points
-                data[~bint] = right[lv]['data'][i][~bint]
+                data[~bint] = right[lv]["data"][i][~bint]
                 level_data.append(data)
             all_data.append(level_data)
 
@@ -753,21 +772,20 @@ class Mandoline(PlotfileCooker):
         array coordinates to plot the data after output
         """
         # Define coord sys
-        if (self.cx is None or
-            self.cy is None):
+        if self.cx is None or self.cy is None:
             self.cn, self.cx, self.cy, self.pos = self.define_slicing_coordinates()
         # grids a from x_lo + dx/2 to y_hi - dx/2 for cell centered data
-        x_grid = np.linspace(self.geo_low[self.cx]\
-                             + self.dx[self.limit_level][self.cx]/2,
-                             self.geo_high[self.cx]\
-                             - self.dx[self.limit_level][self.cx]/2,
-                             self.grid_sizes[self.limit_level][self.cx])
+        x_grid = np.linspace(
+            self.geo_low[self.cx] + self.dx[self.limit_level][self.cx] / 2,
+            self.geo_high[self.cx] - self.dx[self.limit_level][self.cx] / 2,
+            self.grid_sizes[self.limit_level][self.cx],
+        )
 
-        y_grid = np.linspace(self.geo_low[self.cy]\
-                             + self.dx[self.limit_level][self.cy]/2,
-                             self.geo_high[self.cy]\
-                             - self.dx[self.limit_level][self.cy]/2,
-                             self.grid_sizes[self.limit_level][self.cy])
+        y_grid = np.linspace(
+            self.geo_low[self.cy] + self.dx[self.limit_level][self.cy] / 2,
+            self.geo_high[self.cy] - self.dx[self.limit_level][self.cy] / 2,
+            self.grid_sizes[self.limit_level][self.cy],
+        )
 
         return x_grid, y_grid
 
@@ -779,35 +797,37 @@ class Mandoline(PlotfileCooker):
         # Plotfile version
         fobj.write(self.version)
         # Number of fields
-        fobj.write(str(self.nfidxs) + '\n')
+        fobj.write(str(self.nfidxs) + "\n")
         # Fields
         for f in fnames:
-            fobj.write(f + '\n')
+            fobj.write(f + "\n")
         # Always 2D
         fobj.write("2\n")
         # Time
-        fobj.write(str(self.time) + '\n')
+        fobj.write(str(self.time) + "\n")
         # Max level
-        fobj.write(str(self.limit_level) + '\n')
+        fobj.write(str(self.limit_level) + "\n")
         # Lower bounds
         fobj.write(f"{self.geo_low[self.cx]} {self.geo_low[self.cy]}\n")
         # Upper bounds
         fobj.write(f"{self.geo_high[self.cx]} {self.geo_high[self.cy]}\n")
         # Refinement factors
-        factors = self.factors[:self.limit_level]
-        fobj.write(' '.join([str(f) for f in factors]) + '\n')
+        factors = self.factors[: self.limit_level]
+        fobj.write(" ".join([str(f) for f in factors]) + "\n")
         # Grid sizes
         # Looks like ((0,0,0) (7,7,7) (0,0,0))
         tuples = []
         for lv in range(self.limit_level + 1):
-            tup = (f"((0,0) ({self.grid_sizes[lv][self.cx] - 1},"
-                          f"{self.grid_sizes[lv][self.cy] - 1})"
-                           " (0,0))")
+            tup = (
+                f"((0,0) ({self.grid_sizes[lv][self.cx] - 1},"
+                f"{self.grid_sizes[lv][self.cy] - 1})"
+                " (0,0))"
+            )
             tuples.append(tup)
-        fobj.write(' '.join(tuples) + '\n')
+        fobj.write(" ".join(tuples) + "\n")
         # By level step numbers
-        step_numbers = self.step_numbers[:self.limit_level + 1]
-        fobj.write(' '.join([str(n) for n in step_numbers]) + '\n')
+        step_numbers = self.step_numbers[: self.limit_level + 1]
+        fobj.write(" ".join([str(n) for n in step_numbers]) + "\n")
         # Grid resolutions
         for lv in range(self.limit_level + 1):
             fobj.write(f"{self.dx[lv][self.cx]} {self.dx[lv][self.cy]}\n")
@@ -829,7 +849,7 @@ class Mandoline(PlotfileCooker):
             # Write the Level path info
             fobj.write(f"Level_{lv}/Cell\n")
 
-    def write_cell_data_at_level(self, outfile, lv, lvdata,  indexes):
+    def write_cell_data_at_level(self, outfile, lv, lvdata, indexes):
         """
         Write the cell data and cell header at a given level
         outfile: plotfile directory
@@ -840,7 +860,7 @@ class Mandoline(PlotfileCooker):
         # Make the directory
         os.mkdir(os.path.join(outfile, f"Level_{lv}"))
         # Factor between lv and limit level data
-        factor = 2**(self.limit_level - lv)
+        factor = 2 ** (self.limit_level - lv)
         # Determine how many cell files to use
         # I dont know what amrex does lets target 1 MB per cell file
         total_size = 0
@@ -866,7 +886,7 @@ class Mandoline(PlotfileCooker):
         for cfile, i in zip(fnames, range(0, len(cell_indexes), chunk_size)):
             with open(os.path.join(outfile, f"Level_{lv}", cfile), "wb") as bfile:
                 curr_offsets = []
-                subcells_indexes = cell_indexes[i:i+chunk_size]
+                subcells_indexes = cell_indexes[i : i + chunk_size]
                 for idxs in subcells_indexes:
                     offset = bfile.tell()
                     curr_offsets.append(offset)
@@ -893,11 +913,14 @@ class Mandoline(PlotfileCooker):
                     field_min_vals.append(curr_field_min)
                     field_max_vals.append(curr_field_max)
                     # Redefine the header
-                    new_header = ("FAB ((8, (64 11 52 0 1 12 0 1023)),"
-                                  "(8, (8 7 6 5 4 3 2 1)))")
-                    new_header += (f"(({idxs[0][self.cx]},{idxs[0][self.cy]}) "
-                                   f"({idxs[1][self.cx]},{idxs[1][self.cy]}) ")
-                    new_header +=  f"(0,0)) {self.nfidxs}\n"
+                    new_header = (
+                        "FAB ((8, (64 11 52 0 1 12 0 1023))," "(8, (8 7 6 5 4 3 2 1)))"
+                    )
+                    new_header += (
+                        f"(({idxs[0][self.cx]},{idxs[0][self.cy]}) "
+                        f"({idxs[1][self.cx]},{idxs[1][self.cy]}) "
+                    )
+                    new_header += f"(0,0)) {self.nfidxs}\n"
                     bfile.write(new_header.encode("ascii"))
                     bfile.write(np.hstack(curr_data).tobytes())
                 offsets.append(curr_offsets)
@@ -915,29 +938,31 @@ class Mandoline(PlotfileCooker):
             hfile.write(f"({len(indexes)} 0\n")
             # All cell indexes
             for cidxs in cell_indexes:
-                hfile.write(f"(({cidxs[0][self.cx]},{cidxs[0][self.cy]}) "
-                             f"({cidxs[1][self.cx]},{cidxs[1][self.cy]}) "
-                              "(0,0))\n")
+                hfile.write(
+                    f"(({cidxs[0][self.cx]},{cidxs[0][self.cy]}) "
+                    f"({cidxs[1][self.cx]},{cidxs[1][self.cy]}) "
+                    "(0,0))\n"
+                )
             hfile.write(")\n")
             hfile.write(f"{len(indexes)}\n")
             for bfname, bfoffsets in zip(fnames, offsets):
                 for offset in bfoffsets:
                     hfile.write(f"FabOnDisk: {bfname} {offset}\n")
             # Empty line
-            hfile.write('\n')
+            hfile.write("\n")
             # Number of cells number of fields
             hfile.write(f"{len(indexes)},{self.nfidxs}\n")
             # For each cell write the minimum value
             for min_arr in field_min_vals:
                 # Scientific notation with 16 digits
-                line = ','.join([f"{num:.16e}" for num in min_arr])
-                hfile.write(line + ',\n')
+                line = ",".join([f"{num:.16e}" for num in min_arr])
+                hfile.write(line + ",\n")
             # Empty line
-            hfile.write('\n')
+            hfile.write("\n")
             # Number of cells number of fields
             hfile.write(f"{len(indexes)},{self.nfidxs}\n")
             # For each cell write the maximum value
             for max_arr in field_max_vals:
                 # Scientific notation with 16 digits
-                line = ','.join([f"{num:.16e}" for num in max_arr])
-                hfile.write(line + ',\n')
+                line = ",".join([f"{num:.16e}" for num in max_arr])
+                hfile.write(line + ",\n")

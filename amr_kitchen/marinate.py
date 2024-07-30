@@ -1,11 +1,9 @@
-import sys
 import pickle
+import sys
+
 from amr_kitchen import PlotfileCooker
 
-pck = PlotfileCooker(sys.argv[1],
-                     maxmins=True,
-                     ghost=True)
+pck = PlotfileCooker(sys.argv[1], maxmins=True, ghost=True)
 
-with open(sys.argv[1] + '.pkl', 'wb') as pfile:
+with open(sys.argv[1] + ".pkl", "wb") as pfile:
     pickle.dump(pck, pfile)
-

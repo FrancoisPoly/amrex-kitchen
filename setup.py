@@ -31,5 +31,5 @@ setuptools.setup(
             "chef = amr_kitchen.chef.cli:main",
             "pestle = amr_kitchen.pestle.cli:main",
         ]
-    }
+    },
 )

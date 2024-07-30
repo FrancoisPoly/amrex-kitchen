@@ -1,4 +1,5 @@
 import numpy as np
+
 from .utils import expand_array
 
 
@@ -9,7 +10,7 @@ def slice_box(args):
     Input:
     single input argument for multiprocessing
 
-    (index, level, slicedata) = args 
+    (index, level, slicedata) = args
     index: Index of the cell to read (int)
     level: Current AMR Level of the cell (int)
     slicedata: SliceData instance containing the slice information
@@ -29,35 +30,37 @@ def slice_box(args):
             'level' : amr_level}                   # AMR level of the data
     """
     # Unpack input
-    Lv = args['Lv']
-    pos = args['pos']
-    fidxs = args['fidxs']
-    limit_level = args['limit_level']
+    Lv = args["Lv"]
+    pos = args["pos"]
+    fidxs = args["fidxs"]
+    limit_level = args["limit_level"]
     # Get the cell data from the PlotfileCooker class
-    indexes = args['indexes']
-    cfile = args['cfile']
-    offset = args['offset']
-    box = args['box']
-    cx = args['cx']
-    cy = args['cy']
-    cn = args['cn']
-    dx = args['dx']
+    indexes = args["indexes"]
+    cfile = args["cfile"]
+    offset = args["offset"]
+    box = args["box"]
+    cx = args["cx"]
+    cy = args["cy"]
+    cn = args["cn"]
+    dx = args["dx"]
     # Factor between curent grid and covering grid
-    factor = 2**(limit_level - Lv)
+    factor = 2 ** (limit_level - Lv)
     # Compute the slice indexes for the global grid
     x_start = indexes[0][cx] * factor
     x_stop = (indexes[1][cx] + 1) * factor
     y_start = indexes[0][cy] * factor
     y_stop = (indexes[1][cy] + 1) * factor
-    shape = (indexes[1][0] - indexes[0][0] + 1,
-             indexes[1][1] - indexes[0][1] + 1,
-             indexes[1][2] - indexes[0][2] + 1)
+    shape = (
+        indexes[1][0] - indexes[0][0] + 1,
+        indexes[1][1] - indexes[0][1] + 1,
+        indexes[1][2] - indexes[0][2] + 1,
+    )
 
     # Compute the grid in the normal direction
-    normal_grid = np.linspace(box[cn][0] + dx[Lv][cn]/2,
-                              box[cn][1] - dx[Lv][cn]/2,
-                              shape[cn])
-    
+    normal_grid = np.linspace(
+        box[cn][0] + dx[Lv][cn] / 2, box[cn][1] - dx[Lv][cn] / 2, shape[cn]
+    )
+
     # Size on disk of the data slice
     byte_size = np.prod(shape)
     # A list of arrays for output
@@ -74,7 +77,7 @@ def slice_box(args):
                 # Skip the header
                 header = f.readline()
                 # Go to the field we want
-                f.seek(byte_size*8*fidx, 1)
+                f.seek(byte_size * 8 * fidx, 1)
                 # Could be optimized by reading contiguous fields
                 # At once especially if all the data is requested
                 # Read the data
@@ -83,7 +86,7 @@ def slice_box(args):
                 # versions
                 arr = arr.reshape(shape, order="F")
                 data_arrays.append(arr)
-            # If fidx is None (for grid_level) we catch it 
+            # If fidx is None (for grid_level) we catch it
             except TypeError:
                 # level is always added to the output
                 pass
@@ -101,12 +104,14 @@ def slice_box(args):
         # THIS IS WHERE THE MANDOLINE HAPPENS YEHAW
         arr_data = [arr[tuple(arr_indices)] for arr in data_arrays]
         # Only write to left interpolation plane
-        output[0] = {'sx':[x_start, x_stop], # Slice in limit_level grid
-                     'sy':[y_start, y_stop], 
-                     'data':[expand_array(arr, factor) for arr in arr_data], # Expanded data
-                     'normal':normal_grid[shape[cn] - 1], # normal position for interpolation
-                     'level':Lv}
-    
+        output[0] = {
+            "sx": [x_start, x_stop],  # Slice in limit_level grid
+            "sy": [y_start, y_stop],
+            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
+            "normal": normal_grid[shape[cn] - 1],  # normal position for interpolation
+            "level": Lv,
+        }
+
     # Case when the plane is between the first point and the right edge
     elif pos < normal_grid[0]:
         # Slice is at the beginning of the box
@@ -114,12 +119,14 @@ def slice_box(args):
         # Slice the data (MANDOLINE REAL GOURMET)
         arr_data = [arr[tuple(arr_indices)] for arr in data_arrays]
         # Only write to right interpolation plane
-        output[1] = {'sx':[x_start, x_stop],
-                     'sy':[y_start, y_stop],  # Slice in limit_level grid
-                     'data':[expand_array(arr, factor) for arr in arr_data],  # Expanded data
-                     'normal':normal_grid[0],  # normal position for interpolation
-                     'level':Lv}
-        
+        output[1] = {
+            "sx": [x_start, x_stop],
+            "sy": [y_start, y_stop],  # Slice in limit_level grid
+            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
+            "normal": normal_grid[0],  # normal position for interpolation
+            "level": Lv,
+        }
+
     # Case when the plane lands on a grid point
     elif np.isclose(pos, normal_grid).any():
         # Find out which point index
@@ -128,19 +135,23 @@ def slice_box(args):
         arr_indices[cn] = match_idx
         arr_data = [arr[tuple(arr_indices)] for arr in data_arrays]
         # Put left and right interpolation on the same point
-        output[0] = {'sx':[x_start, x_stop], 
-                     'sy':[y_start, y_stop],  # Slice in limit_level grid
-                     'data':[expand_array(arr, factor) for arr in arr_data],  # Expanded data
-                     'normal':normal_grid[match_idx],  # normal position for interpolation
-                     'level':Lv}
+        output[0] = {
+            "sx": [x_start, x_stop],
+            "sy": [y_start, y_stop],  # Slice in limit_level grid
+            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
+            "normal": normal_grid[match_idx],  # normal position for interpolation
+            "level": Lv,
+        }
         # We could only keep it on one side since its the same data and remember which side
         # It is when we do the interpolation, and dont interpolate when the normal coordinate
         # is equal to the slice coordinate. (#TODO)
-        output[1] = {'sx':[x_start, x_stop], 
-                     'sy':[y_start, y_stop],  # Slice in limit_level grid
-                     'data':[expand_array(arr, factor) for arr in arr_data],  # Expanded data
-                     'normal':normal_grid[match_idx],  # normal position for interpolation
-                     'level':Lv}
+        output[1] = {
+            "sx": [x_start, x_stop],
+            "sy": [y_start, y_stop],  # Slice in limit_level grid
+            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
+            "normal": normal_grid[match_idx],  # normal position for interpolation
+            "level": Lv,
+        }
 
     # Case when the plane is between grid points in the box
     else:
@@ -151,25 +162,29 @@ def slice_box(args):
         arr_indices[cn] = idx_left
         arr_data = [arr[tuple(arr_indices)] for arr in data_arrays]
         # Maybe we dont need to copy the slice (#TODO)
-        output[0] = {'sx':[x_start, x_stop], 
-                     'sy':[y_start, y_stop],  # Slice in limit_level grid
-                     'data':[expand_array(arr, factor).copy() for arr in arr_data], 
-                     'normal':normal_grid[idx_left],  # normal position for interpolation
-                     'level':Lv}
+        output[0] = {
+            "sx": [x_start, x_stop],
+            "sy": [y_start, y_stop],  # Slice in limit_level grid
+            "data": [expand_array(arr, factor).copy() for arr in arr_data],
+            "normal": normal_grid[idx_left],  # normal position for interpolation
+            "level": Lv,
+        }
         # Right plane
         arr_indices[cn] = idx_right
         arr_data = [arr[tuple(arr_indices)] for arr in data_arrays]
         # Maybe we dont need to copy the slice (#TODO)
-        output[1] = {'sx':[x_start, x_stop], 
-                     'sy':[y_start, y_stop],  # Slice in limit_level grid
-                     'data':[expand_array(arr, factor).copy() for arr in arr_data], 
-                     'normal':normal_grid[idx_right],  # normal position for interpolation
-                     'level':Lv}
+        output[1] = {
+            "sx": [x_start, x_stop],
+            "sy": [y_start, y_stop],  # Slice in limit_level grid
+            "data": [expand_array(arr, factor).copy() for arr in arr_data],
+            "normal": normal_grid[idx_right],  # normal position for interpolation
+            "level": Lv,
+        }
     # Keep to recreate the 2D plotfile
     output.append(header)
     output.append(args["bidx"])
 
-    return output 
+    return output
 
 
 def plate_box(args):
@@ -180,7 +195,7 @@ def plate_box(args):
     single input argument for multiprocessing
 
     TODO: replace with actual input
-    (index, level, slicedata) = args 
+    (index, level, slicedata) = args
     index: Index of the cell to read (int)
     level: Current AMR Level of the cell (int)
     slicedata: SliceData instance containing the slice information
@@ -192,26 +207,28 @@ def plate_box(args):
             'level' : amr_level}                   # AMR level of the data
     """
     # Unpack input
-    Lv = args['Lv']
-    fidxs = args['fidxs']
-    limit_level = args['limit_level']
+    Lv = args["Lv"]
+    fidxs = args["fidxs"]
+    limit_level = args["limit_level"]
     # Get the cell data from the PlotfileCooker class
-    indexes = args['indexes']
-    cfile = args['cfile']
-    offset = args['offset']
-    box = args['box']
-    cx = args['cx']
-    cy = args['cy']
-    dx = args['dx']
+    indexes = args["indexes"]
+    cfile = args["cfile"]
+    offset = args["offset"]
+    box = args["box"]
+    cx = args["cx"]
+    cy = args["cy"]
+    dx = args["dx"]
     # Factor between curent grid and covering grid
-    factor = 2**(limit_level - Lv)
+    factor = 2 ** (limit_level - Lv)
     # Compute the slice indexes for the global grid
     x_start = indexes[0][cx] * factor
     x_stop = (indexes[1][cx] + 1) * factor
     y_start = indexes[0][cy] * factor
     y_stop = (indexes[1][cy] + 1) * factor
-    shape = (indexes[1][0] - indexes[0][0] + 1,
-             indexes[1][1] - indexes[0][1] + 1,)
+    shape = (
+        indexes[1][0] - indexes[0][0] + 1,
+        indexes[1][1] - indexes[0][1] + 1,
+    )
 
     # Size on disk of the data slice
     byte_size = np.prod(shape)
@@ -229,7 +246,7 @@ def plate_box(args):
                 # Skip the header
                 header = f.readline()
                 # Go to the field we want
-                f.seek(byte_size*8*fidx, 1)
+                f.seek(byte_size * 8 * fidx, 1)
                 # Could be optimized by reading contiguous fields
                 # At once especially if all the data is requested
                 # Read the data
@@ -238,16 +255,17 @@ def plate_box(args):
                 # versions
                 arr = arr.reshape(shape, order="F")
                 data_arrays.append(arr)
-            # If fidx is None (for grid_level) we catch it 
+            # If fidx is None (for grid_level) we catch it
             except TypeError:
                 # level is always added to the output
                 pass
     # No mandoline here
-    output = {'sx':[x_start, x_stop], 
-              'sy':[y_start, y_stop],  # Slice in limit_level grid
-              'data':[expand_array(arr, factor) for arr in data_arrays], 
-              'level':Lv,
-              'header':header}
+    output = {
+        "sx": [x_start, x_stop],
+        "sy": [y_start, y_stop],  # Slice in limit_level grid
+        "data": [expand_array(arr, factor) for arr in data_arrays],
+        "level": Lv,
+        "header": header,
+    }
 
-    return output 
-
+    return output

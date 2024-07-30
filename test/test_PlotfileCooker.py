@@ -1,8 +1,10 @@
 import os
 import unittest
+
 import numpy as np
 
 from amr_kitchen import PlotfileCooker
+
 
 class TestSliceData(unittest.TestCase):
     pfile2d = "test_assets/example_plt_2d"
@@ -25,14 +27,14 @@ class TestSliceData(unittest.TestCase):
     def test_minmaxs2d(self):
         hdr = PlotfileCooker(self.pfile2d, maxmins=True)
         self.assertIsInstance(hdr, PlotfileCooker)
-        self.assertTrue('mins' in hdr.cells[0])
-        self.assertTrue('maxs' in hdr.cells[0])
+        self.assertTrue("mins" in hdr.cells[0])
+        self.assertTrue("maxs" in hdr.cells[0])
 
     def test_minsmaxs3d(self):
         hdr = PlotfileCooker(self.pfile3d, maxmins=True)
         self.assertIsInstance(hdr, PlotfileCooker)
-        self.assertTrue('mins' in hdr.cells[0])
-        self.assertTrue('maxs' in hdr.cells[0])
+        self.assertTrue("mins" in hdr.cells[0])
+        self.assertTrue("maxs" in hdr.cells[0])
 
     def test_bybinfile_iterator2d(self):
         hdr = PlotfileCooker(self.pfile2d)
@@ -43,8 +45,8 @@ class TestSliceData(unittest.TestCase):
                         shape = [idx[1][i] - idx[0][i] + 1 for i in range(hdr.ndims)]
                         shape.append(len(hdr.fields))
                         bf.seek(ofs)
-                        arr = np.fromfile(bf, 'float64', np.prod(shape))
-                        
+                        arr = np.fromfile(bf, "float64", np.prod(shape))
+
     def test_bybinfile_iterator3d(self):
         hdr = PlotfileCooker(self.pfile3d)
         for lv in range(hdr.limit_level + 1):
@@ -54,5 +56,4 @@ class TestSliceData(unittest.TestCase):
                         shape = [idx[1][i] - idx[0][i] + 1 for i in range(hdr.ndims)]
                         shape.append(len(hdr.fields))
                         bf.seek(ofs)
-                        arr = np.fromfile(bf, 'float64', np.prod(shape))
-                    
+                        arr = np.fromfile(bf, "float64", np.prod(shape))

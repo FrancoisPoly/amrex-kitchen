@@ -1,8 +1,2 @@
+from . import chef, colander, combine, mandoline, pestle, spoon, taste
 from .plotfile_cooker import PlotfileCooker
-from . import mandoline
-from . import colander
-from . import spoon
-from . import chef
-from . import taste
-from . import combine
-from . import pestle

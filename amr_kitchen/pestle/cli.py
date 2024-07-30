@@ -1,31 +1,34 @@
-import sys
 import argparse
-from .pestle import volume_integral
+import sys
+
 from amr_kitchen import PlotfileCooker
-from .pestle import field_units
+
+from .pestle import field_units, volume_integral
 
 
 def main():
     # Argument parser
     parser = argparse.ArgumentParser(
-            description="Prints the volume integral of the chosen field in a plotfile")
+        description="Prints the volume integral of the chosen field in a plotfile"
+    )
 
+    parser.add_argument("--variable", "-v", type=str, help="Variable to integrate")
     parser.add_argument(
-            "--variable", "-v", type=str,
-            help="Variable to integrate")
+        "--limit_level", "-l", type=int, help="Maximum AMR Level considered"
+    )
     parser.add_argument(
-            "--limit_level", "-l", type=int,
-            help="Maximum AMR Level considered")
-    parser.add_argument(
-            "--volfrac", "-vf", action="store_true",
-            help=("Use the volFrac field to obtain more"
-                  " accurate integrals for plotfiles with embedded"
-                  " boundaries. The contribution of a finite volume"
-                  " to the integral is taken as:"
-                  "\n value * dV * volFrac"))
-    parser.add_argument(
-            "plotfile", type=str,
-            help="Path of the plotfile to integrate")
+        "--volfrac",
+        "-vf",
+        action="store_true",
+        help=(
+            "Use the volFrac field to obtain more"
+            " accurate integrals for plotfiles with embedded"
+            " boundaries. The contribution of a finite volume"
+            " to the integral is taken as:"
+            "\n value * dV * volFrac"
+        ),
+    )
+    parser.add_argument("plotfile", type=str, help="Path of the plotfile to integrate")
 
     args = parser.parse_args()
     """
@@ -39,14 +42,20 @@ def main():
         pck = PlotfileCooker(args.plotfile, ghost=True)
     except:
         print("This tool is not supported for plotfiles with ndims < 3")
-        print(("You can use mandoline to create a 2D uniform grid and"
-               " integrate it manually"))
+        print(
+            (
+                "You can use mandoline to create a 2D uniform grid and"
+                " integrate it manually"
+            )
+        )
         sys.exit()
-    # Integrating the chosen fields 
-    integral = volume_integral(pck=pck,
-                               field=args.variable,
-                               limit_level=args.limit_level,
-                               use_volfrac=args.volfrac )
+    # Integrating the chosen fields
+    integral = volume_integral(
+        pck=pck,
+        field=args.variable,
+        limit_level=args.limit_level,
+        use_volfrac=args.volfrac,
+    )
     if args.variable in field_units:
         units = field_units[args.variable]
     elif "I_R" in args.variable:
@@ -55,6 +64,7 @@ def main():
         units = "[-]"
 
     print(f"Volume integral of {args.variable} in plotfile: {integral:.15f} {units}")
+
 
 if __name__ == "__main__":
     main()

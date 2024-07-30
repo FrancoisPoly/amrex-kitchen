@@ -1,3 +1,38 @@
 [build-system]
-requires = ["setuptools>=42"]
-build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 70.1.1", "numpy >= 2.0.0", "matplotlib >= 3.9.0", "tqdm >= 4.66.4",]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "amr_kitchen"
+version = "1.0.0"
+requires-python = ">=3.6"
+authors = [
+  {name = "Olivier Chabot", email = "olivier@email.com"},
+]
+
+description = "A Toolbox to manipulate AMReX plotfiles"
+readme = "README.md"
+license = {text = "MIT License"}
+keywords = ["AMReX plotfiles", "DNS", "Fluid Mechanics",]
+classifiers = [
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+]
+
+#[project.optional-dependencies]
+#gui = ["PyQt5"]
+#cli = [
+#  "rich",
+#  "click",
+#]
+
+[project.urls]
+Repository = "https://github.com/olivecha/amrex-kitchen.git"
+"Bug Tracker" = "https://github.com/olivecha/mandoline/issues"
+
+#[project.scripts]
+#spam-cli = "spam:main_cli"
+
+#[project.entry-points."spam.magical"]
+#tomatoes = "spam:main_tomatoes"

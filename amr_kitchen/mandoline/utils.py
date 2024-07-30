@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 
 
@@ -8,7 +9,7 @@ def expand_array(arr, factor):
     ----
     Expand lower resolution 2D array by [factor]
     to broadcast it to a higher level grid.
-    This allows broadcasting lower resolution arrays to a higher 
+    This allows broadcasting lower resolution arrays to a higher
     AMR level grid without altering the data.
     ----
     Example:
@@ -19,10 +20,10 @@ def expand_array(arr, factor):
         [3, 3, 4, 4],
         [3, 3, 4, 4]]
     """
-    exp = np.repeat(arr, factor).reshape(arr.shape[0], 
-                                         arr.shape[1]*factor)
-    exp = np.repeat(exp, factor, axis=0).reshape(arr.shape[0]*factor, 
-                                                 arr.shape[1]*factor)
+    exp = np.repeat(arr, factor).reshape(arr.shape[0], arr.shape[1] * factor)
+    exp = np.repeat(exp, factor, axis=0).reshape(
+        arr.shape[0] * factor, arr.shape[1] * factor
+    )
     return exp
 
 
@@ -33,16 +34,16 @@ def sanitize_field_name(fname):
     Y(H) becomes Y_H
     """
 
-    return fname.replace('(','_').replace(')','')
+    return fname.replace("(", "_").replace(")", "")
+
 
 def plotfile_ndims(pfile):
     """
     Quick check of the dimensions of the plotfile
     """
-    with open(os.path.join(pfile, 'Header')) as hfile:
+    with open(os.path.join(pfile, "Header")) as hfile:
         hfile.readline()
         nfields = int(hfile.readline())
         for i in range(nfields):
             hfile.readline()
         return int(hfile.readline())
-
