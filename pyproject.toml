@@ -1,5 +1,11 @@
 [build-system]
-requires = ["setuptools >= 70.1.1", "numpy >= 2.0.0", "matplotlib >= 3.9.0", "tqdm >= 4.66.4",]
+requires = ["argparse >= 1.1",
+            "cantera >= 3.0.1",
+            "humanize >= 4.10.0",
+            "matplotlib >= 3.9.0",
+            "numpy >= 2.0.0", 
+            "setuptools >= 70.1.1",  
+            "tqdm >= 4.66.4",]
 build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
