@@ -51,7 +51,7 @@ def shape_from_header(h):
     start = np.array(start.split("(")[-1].replace(")", "").split(","), dtype=int)
     stop = np.array(stop.replace("(", "").replace(")", "").split(","), dtype=int)
     shape = stop - start + 1
-    total_shape = [shape[0], shape[1], shape[2], nfields]
+    total_shape = np.append(shape, nfields)
     return total_shape
 
 
@@ -78,11 +78,9 @@ def header_from_indices(start, stop, nfields):
     nfields: number of fields in the plotfile
     """
     header_const = "FAB ((8, (64 11 52 0 1 12 0 1023)),(8, (8 7 6 5 4 3 2 1)))"
-    header_indices = (
-        f"(({start[0]},{start[1]},{start[2]})"
-        f" ({stop[0]},{stop[1]},{stop[2]})"
-        f" (0,0,0)) {nfields}\n"
-    )
+    header_indices =  ("((" + ','.join([f"{s}" for s in start]) + ")"
+                       " (" + ','.join([f"{s}" for s in stop]) + ")"
+                       " (" + ','.join(["0" for _ in start]) + f")) {nfields}\n")
     header = header_const + header_indices
     return header.encode("ascii")
 
