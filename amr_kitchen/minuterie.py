@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 def main():
     if sys.argv[1] in ["-h", "--help"]:
         print("Display the current time step of a plotfile")
@@ -12,6 +13,4 @@ def main():
             for _ in range(nfields):
                 hfile.readline()
             hfile.readline()
-            print(f"Plotfile time =", float(hfile.readline()))
-
-
+            print(f"Plotfile time =, {float(hfile.readline())}")

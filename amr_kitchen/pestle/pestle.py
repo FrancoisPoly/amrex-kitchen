@@ -1,8 +1,6 @@
 import multiprocessing
-import pickle
 import time
 
-import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
@@ -104,7 +102,7 @@ def volume_integral(pck, field, limit_level=None, use_volfrac=False):
     id_vol = None
     if "volFrac" in pck.fields and use_volfrac:
         id_vol = pck.fields["volFrac"]
-        print(f"Using embedded boundary volFrac field")
+        print("Using embedded boundary volFrac field")
 
     covering_masks = []
     for lv in range(pck.limit_level):  # Last level is not masked
@@ -116,9 +114,9 @@ def volume_integral(pck, field, limit_level=None, use_volfrac=False):
             barr_starts = np.array((indices[0] * 2) // next_lv_factors, dtype=int)
             barr_ends = np.array((indices[1] * 2) // next_lv_factors, dtype=int)
             next_level_boxes = pck.box_arrays[lv + 1][
-                barr_starts[0] : barr_ends[0] + 1,
-                barr_starts[1] : barr_ends[1] + 1,
-                barr_starts[2] : barr_ends[2] + 1,
+                barr_starts[0]: barr_ends[0] + 1,
+                barr_starts[1]: barr_ends[1] + 1,
+                barr_starts[2]: barr_ends[2] + 1,
             ]
             # Convert the upper level box slice to lower level bool
             bcast_factor = next_lv_factors[0] // 2

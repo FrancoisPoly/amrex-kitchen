@@ -1,10 +1,7 @@
-import linecache
 import os
-import shutil
 import traceback
 
 import numpy as np
-from tqdm import tqdm
 
 from amr_kitchen.utils import TastesBadError
 
@@ -44,7 +41,8 @@ class PlotfileCooker(object):
             self.grid_sizes = []
             for block in hfile.readline().split()[1::3]:
                 grid_size = np.array(
-                    block.replace("(", "").replace(")", "").split(","), dtype=int
+                    block.replace("(", "").replace(")", "").split(","),
+                    dtype=int
                 )
                 self.grid_sizes.append(grid_size + 1)
             self.step_numbers = [int(n) for n in hfile.readline().split()]
@@ -111,8 +109,12 @@ class PlotfileCooker(object):
                 self.ghost_map = self.compute_ghost_map()
             else:
                 raise ValueError(
-                    ("Ghost boxes are not available for plotfiles with" " ndims < 3")
-                )
+                    (
+                     """
+                     Ghost boxes are not available for plotfiles with
+                     ndims < 3
+                     """
+                    ))
 
     def __eq__(self, other):
         """
@@ -135,7 +137,8 @@ class PlotfileCooker(object):
                 return False
         # Compare cell indexes
         for lv in range(self.limit_level + 1):
-            if not np.allclose(self.cells[lv]["indexes"], other.cells[lv]["indexes"]):
+            if not np.allclose(self.cells[lv]["indexes"],
+                               other.cells[lv]["indexes"]):
                 return False
         # Compare binary files
         # for lv in range(self.limit_level + 1):
@@ -210,10 +213,12 @@ class PlotfileCooker(object):
                     # except ValueError as e:
                     # raise TastesBadError("")
                     start = np.array(
-                        start.replace("(", "").replace(")", "").split(","), dtype=int
+                        start.replace("(", "").replace(")", "").split(","),
+                        dtype=int
                     )
                     stop = np.array(
-                        stop.replace("(", "").replace(")", "").split(","), dtype=int
+                        stop.replace("(", "").replace(")", "").split(","),
+                        dtype=int
                     )
                     indexes.append([start, stop])
                 lvcells["indexes"] = indexes
@@ -223,7 +228,9 @@ class PlotfileCooker(object):
                 offsets = []
                 for _ in range(n_cells):
                     _, file, offset = cfile.readline().split()
-                    files.append(os.path.join(self.pfile, self.cell_paths[i], file))
+                    files.append(os.path.join(self.pfile,
+                                              self.cell_paths[i],
+                                              file))
                     offsets.append(int(offset))
                 if maxmins:
                     lvmaxs = []
@@ -272,9 +279,9 @@ class PlotfileCooker(object):
                 bidx_lo = idx[0] // box_rez
                 bidx_hi = idx[1] // box_rez
                 box_array[
-                    bidx_lo[0] : bidx_hi[0] + 1,
-                    bidx_lo[1] : bidx_hi[1] + 1,
-                    bidx_lo[2] : bidx_hi[2] + 1,
+                    bidx_lo[0]: bidx_hi[0] + 1,
+                    bidx_lo[1]: bidx_hi[1] + 1,
+                    bidx_lo[2]: bidx_hi[2] + 1,
                 ] = i
 
                 lv_barray_indices.append([bidx_lo, bidx_hi])
@@ -301,9 +308,9 @@ class PlotfileCooker(object):
                     idx_lo[0][coo] = max(idx_lo[0][coo] - 1, 0)
                     for bid in np.unique(
                         self.box_arrays[lv][
-                            idx_lo[0][0] : idx_lo[1][0],
-                            idx_lo[0][1] : idx_lo[1][1],
-                            idx_lo[0][2] : idx_lo[1][2],
+                            idx_lo[0][0]: idx_lo[1][0],
+                            idx_lo[0][1]: idx_lo[1][1],
+                            idx_lo[0][2]: idx_lo[1][2],
                         ]
                     ):
                         if bid != box_index:
@@ -311,12 +318,13 @@ class PlotfileCooker(object):
 
                     idx_hi = np.copy(indices)
                     idx_hi[1] += 1
-                    idx_hi[1][coo] = min(idx_hi[1][coo] + 1, barr_shape[coo] - 1)
+                    idx_hi[1][coo] = min(idx_hi[1][coo] + 1,
+                                         barr_shape[coo] - 1)
                     for bid in np.unique(
                         self.box_arrays[lv][
-                            idx_hi[0][0] : idx_hi[1][0],
-                            idx_hi[0][1] : idx_hi[1][1],
-                            idx_hi[0][2] : idx_hi[1][2],
+                            idx_hi[0][0]: idx_hi[1][0],
+                            idx_hi[0][1]: idx_hi[1][1],
+                            idx_hi[0][2]: idx_hi[1][2],
                         ]
                     ):
                         if bid != box_index:
@@ -331,8 +339,8 @@ class PlotfileCooker(object):
             if f == field:
                 return i
         raise ValueError(
-            f"""Field {field} was not found in file. 
-                             Available fields in {self.pfile.split('/')[-1]} are:
+            f"""Field {field} was not found in file.
+                             Available fields in {self.pfile.split('/')[-1]} :
                              {', '.join(self.fields.keys())} and grid_level"""
         )
 
@@ -347,7 +355,9 @@ class PlotfileCooker(object):
         #           outpath)
         for pth in self.cell_paths[: limit_level + 1]:
             level_dir = pth
-            os.makedirs(os.path.join(os.getcwd(), outpath, level_dir), exist_ok=True)
+            os.makedirs(os.path.join(os.getcwd(),
+                                     outpath,
+                                     level_dir), exist_ok=True)
             # shutil.copy(os.path.join(self.pfile, pth + '_H'),
             #            os.path.join(outpath, level_dir))
 
@@ -510,7 +520,7 @@ class PlotfileCooker(object):
                 # Write the level info
                 hfile.write(f"{lv} {len(boxes[lv])} 0.0\n")
                 # Write the level step
-                hfile.write(f"0\n")
+                hfile.write("0\n")
                 # Write the 2D boxes
                 for box in boxes[lv]:
                     for i in range(self.ndims):

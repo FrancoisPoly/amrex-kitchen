@@ -4,7 +4,6 @@ import time
 
 import numpy as np
 
-from amr_kitchen import PlotfileCooker
 from amr_kitchen.utils import (
     header_from_indices,
     indices_from_header,
@@ -36,9 +35,12 @@ def parallel_combine_binary_files(args):
                     h2 = bf2.readline()
                     h2 = h2.decode("ascii")
                     shape2 = shape_from_header(h2)
+                    # Make sure we really need this variable
                     idx2 = indices_from_header(h2)
                     # Define the write binary header
-                    hw = header_from_indices(idx1[0], idx1[1], shape1[3] + shape2[3])
+                    hw = header_from_indices(idx1[0],
+                                             idx1[1],
+                                             shape1[3] + shape2[3])
                     # save the current offset
                     offsets.append(bfw.tell())
                     # Write the header and data
@@ -147,7 +149,10 @@ def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
         for file_idxs, offsets in zip(box_index_map, new_offsets):
             mapped_offsets[file_idxs] = offsets
         # Rewrite the cell headers
-        cell_header_w = os.path.join(os.getcwd(), pltout, pck1.cell_paths[lv], "Cell_H")
+        cell_header_w = os.path.join(os.getcwd(),
+                                     pltout,
+                                     pck1.cell_paths[lv],
+                                     "Cell_H")
         # Header we read
         cell_header_r1 = os.path.join(
             os.getcwd(), pck1.pfile, pck1.cell_paths[lv], "Cell_H"
@@ -161,29 +166,29 @@ def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
                 with open(cell_header_r2, "r") as ch_r2:
                     # First two lines
                     for i in range(2):
-                        l = ch_r1.readline()
+                        line = ch_r1.readline()
                         ch_r2.readline()
-                        ch_w.write(l)
+                        ch_w.write(line)
                     # Number of fields
                     ch_r1.readline()
                     ch_r2.readline()
                     ch_w.write(f"{nfields}\n")
                     # Mesh stays the same
                     while True:
-                        l = ch_r1.readline()
+                        line = ch_r1.readline()
                         ch_r2.readline()
-                        if "FabOnDisk:" in l:
-                            new_l = l.split()[:-1]
+                        if "FabOnDisk:" in line:
+                            new_l = line.split()[:-1]
                             new_l.append(str(mapped_offsets[0]))
                             ch_w.write(" ".join(new_l) + "\n")
                             break
                         else:
-                            ch_w.write(l)
+                            ch_w.write(line)
                     # Write the cell indexes
                     for fst in mapped_offsets[1:]:
-                        l = ch_r1.readline()
+                        line = ch_r1.readline()
                         ch_r2.readline()
-                        new_l = l.split()[:-1]
+                        new_l = line.split()[:-1]
                         new_l.append(str(fst))
                         ch_w.write(" ".join(new_l) + "\n")
                     # Blank line

@@ -130,7 +130,9 @@ class Colander(PlotfileCooker):
             lvstart = time.time()
             level_files = np.array(self.cells[lv]["files"])
             ncells = len(level_files)
-            cell_header_r = os.path.join(self.pfile, self.cell_paths[lv], "Cell_H")
+            cell_header_r = os.path.join(self.pfile,
+                                         self.cell_paths[lv],
+                                         "Cell_H")
             # All indexes of the boxes at lv
             box_indexes = np.arange(ncells)
             # Multiprocessing args list
@@ -184,32 +186,34 @@ class Colander(PlotfileCooker):
         """
         Update the new Cell header
         """
-        cell_header_w = os.path.join(self.outdir, self.cell_paths[lv], "Cell_H")
+        cell_header_w = os.path.join(self.outdir,
+                                     self.cell_paths[lv],
+                                     "Cell_H")
 
         with open(os.path.join(os.getcwd(), cell_header_w), "w") as ch_w, open(
             os.path.join(os.getcwd(), cell_header_r), "r"
         ) as ch_r:
             # First two lines
             for i in range(2):
-                l = ch_r.readline()
-                ch_w.write(l)
+                line = ch_r.readline()
+                ch_w.write(line)
             # Number of fields
             _ = ch_r.readline()
             ch_w.write(f"{len(self.kept_fields)}\n")
             # Mesh stays the same
             while True:
-                l = ch_r.readline()
-                if "FabOnDisk:" in l:
-                    new_l = l.split()[:-1]
+                line = ch_r.readline()
+                if "FabOnDisk:" in line:
+                    new_l = line.split()[:-1]
                     new_l.append(str(new_offsets[0]))
                     ch_w.write(" ".join(new_l) + "\n")
                     break
                 else:
-                    ch_w.write(l)
+                    ch_w.write(line)
             # Write the cell indexes
             for fst in new_offsets[1:]:
-                l = ch_r.readline()
-                new_l = l.split()[:-1]
+                line = ch_r.readline()
+                new_l = line.split()[:-1]
                 new_l.append(str(fst))
                 ch_w.write(" ".join(new_l) + "\n")
             # Blank line

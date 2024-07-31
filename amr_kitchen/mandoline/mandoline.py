@@ -10,7 +10,6 @@ import numpy as np
 from amr_kitchen import PlotfileCooker
 
 from .blades import plate_box, slice_box
-from .utils import expand_array
 
 
 class Mandoline(PlotfileCooker):
@@ -22,7 +21,12 @@ class Mandoline(PlotfileCooker):
     coordnames = {0: "x", 1: "y", 2: "z", 3: "2D"}
 
     def __init__(
-        self, plotfile, fields=None, limit_level=None, serial=False, verbose=None
+        self,
+        plotfile,
+        fields=None,
+        limit_level=None,
+        serial=False,
+        verbose=None
     ):
         """
         Constructor for the mandoline object
@@ -66,7 +70,12 @@ class Mandoline(PlotfileCooker):
         self.cy = None
         self.pos = None
 
-    def slice(self, normal=None, pos=None, outfile=None, fformat=None, **pltkwargs):
+    def slice(self,
+              normal=None,
+              pos=None,
+              outfile=None,
+              fformat=None,
+              **pltkwargs):
         """
         Slicing function of the Mandoline class
         ____
@@ -119,9 +128,11 @@ class Mandoline(PlotfileCooker):
                     plane_data.append(pool.map(slice_box, pool_inputs))
 
             if self.v > 0:
-                print(f"Time to read Lv {Lv}:", np.around(time.time() - read_start, 2))
+                print(f"Time to read Lv {Lv}:",
+                      np.around(time.time() - read_start, 2))
 
         # Interpolation timer
+        # Make sure we really need this variable
         interp_start = time.time()
         # Process the sliced box to create uniform grids
         if fformat in ["array", "return", "image"]:
@@ -139,11 +150,12 @@ class Mandoline(PlotfileCooker):
             if fformat == "image":
                 self.plot_slice(all_data, outfile, **pltkwargs)
 
-        # For plotfiles we keep the data needed to reconstruct the multilevel grid
+        # For plotfiles we keep the data
+        # needed to reconstruct the multilevel grid
         elif fformat == "plotfile":
             output_start = time.time()
             # Interpolate for each level
-            all_data_bylevel, indexes, headers = self.interpolate_bylevel(plane_data)
+            all_data_bylevel, indexes, _ = self.interpolate_bylevel(plane_data)
             # Define the plotfile name
             if outfile is None:
                 outfile = self.default_output_path()
@@ -199,7 +211,9 @@ class Mandoline(PlotfileCooker):
         """
         # TODO: Use colander to remove fields from 2D plotfiles
         if fformat == "plotfile":
-            raise NotImplementedError("TODO (you can use amrex-kitchen/" "colander")
+            raise NotImplementedError(
+                "TODO (you can use amrex-kitchen/" "colander"
+                )
         # Define the output
         if outfile is None:
             outfile = self.default_output_path()
@@ -222,7 +236,8 @@ class Mandoline(PlotfileCooker):
                 plane_data.append(pool.map(plate_box, pool_inputs))
 
             if self.v > 0:
-                print(f"Time to read Lv {Lv}:", np.around(time.time() - read_start, 2))
+                print(f"Time to read Lv {Lv}:",
+                      np.around(time.time() - read_start, 2))
 
         # Broadcast the data to empty arrays
         all_data = [self.limit_level_arr() for _ in range(self.nfidxs)]
@@ -473,7 +488,7 @@ class Mandoline(PlotfileCooker):
         if fields is None:
             fields = ["density"]
         # String input (for outside the cli)
-        if type(fields) == str:
+        if isinstance(fields, str):
             fields = [fields]
         # Special case for all fields
         if "all" in fields:
@@ -546,7 +561,7 @@ class Mandoline(PlotfileCooker):
             slicename = slicename + pos_string
         elif self.ndims == 2:
             # Looks like S2Ddensity45000
-            slicename = f"S2D"
+            slicename = "S2D"
         # Single field slice
         if fieldname is not None:
             fieldstring = fieldname
@@ -572,7 +587,10 @@ class Mandoline(PlotfileCooker):
                 pass
             elif ltime < 0.1:
                 print(
-                    "This plotfile seems small you may consider " "reading it in serial"
+                    """
+                    This plotfile seems small you may consider
+                    reading it in serial
+                    """
                 )
             else:
                 pass
@@ -740,6 +758,7 @@ class Mandoline(PlotfileCooker):
 
         # Ouput list
         all_data = []
+        # Make sure we really need this variable
         all_indexes = []
         # Interpolate for each level
         for lv in range(self.limit_level + 1):
@@ -886,7 +905,7 @@ class Mandoline(PlotfileCooker):
         for cfile, i in zip(fnames, range(0, len(cell_indexes), chunk_size)):
             with open(os.path.join(outfile, f"Level_{lv}", cfile), "wb") as bfile:
                 curr_offsets = []
-                subcells_indexes = cell_indexes[i : i + chunk_size]
+                subcells_indexes = cell_indexes[i: i + chunk_size]
                 for idxs in subcells_indexes:
                     offset = bfile.tell()
                     curr_offsets.append(offset)

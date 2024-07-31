@@ -26,7 +26,9 @@ class TestSlice(unittest.TestCase):
                 "Y(O)",
             ]
 
-            cld = Colander(self.pfile2d, output="temp2d", variables=all_variables)
+            cld = Colander(self.pfile2d,
+                           output="temp2d",
+                           variables=all_variables)
             cld.strain()
 
             chdr_new = open(

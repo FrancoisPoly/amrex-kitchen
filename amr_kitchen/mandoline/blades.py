@@ -107,8 +107,12 @@ def slice_box(args):
         output[0] = {
             "sx": [x_start, x_stop],  # Slice in limit_level grid
             "sy": [y_start, y_stop],
-            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
-            "normal": normal_grid[shape[cn] - 1],  # normal position for interpolation
+            "data": [
+                expand_array(arr, factor) for arr in arr_data
+                ],  # Expanded data
+            "normal": normal_grid[
+                shape[cn] - 1
+                ],  # normal position for interpolation
             "level": Lv,
         }
 
@@ -122,7 +126,9 @@ def slice_box(args):
         output[1] = {
             "sx": [x_start, x_stop],
             "sy": [y_start, y_stop],  # Slice in limit_level grid
-            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
+            "data": [
+                expand_array(arr, factor) for arr in arr_data
+                ],  # Expanded data
             "normal": normal_grid[0],  # normal position for interpolation
             "level": Lv,
         }
@@ -138,18 +144,28 @@ def slice_box(args):
         output[0] = {
             "sx": [x_start, x_stop],
             "sy": [y_start, y_stop],  # Slice in limit_level grid
-            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
-            "normal": normal_grid[match_idx],  # normal position for interpolation
+            "data": [
+                expand_array(arr, factor) for arr in arr_data
+                ],  # Expanded data
+            "normal": normal_grid[
+                match_idx
+                ],  # normal position for interpolation
             "level": Lv,
         }
-        # We could only keep it on one side since its the same data and remember which side
-        # It is when we do the interpolation, and dont interpolate when the normal coordinate
+        # We could only keep it on one side
+        # since its the same data and remember which side
+        # It is when we do the interpolation,
+        # and dont interpolate when the normal coordinate
         # is equal to the slice coordinate. (#TODO)
         output[1] = {
             "sx": [x_start, x_stop],
             "sy": [y_start, y_stop],  # Slice in limit_level grid
-            "data": [expand_array(arr, factor) for arr in arr_data],  # Expanded data
-            "normal": normal_grid[match_idx],  # normal position for interpolation
+            "data": [
+                expand_array(arr, factor) for arr in arr_data
+                ],  # Expanded data
+            "normal": normal_grid[
+                match_idx
+                ],  # normal position for interpolation
             "level": Lv,
         }
 
@@ -166,7 +182,9 @@ def slice_box(args):
             "sx": [x_start, x_stop],
             "sy": [y_start, y_stop],  # Slice in limit_level grid
             "data": [expand_array(arr, factor).copy() for arr in arr_data],
-            "normal": normal_grid[idx_left],  # normal position for interpolation
+            "normal": normal_grid[
+                idx_left
+                ],  # normal position for interpolation
             "level": Lv,
         }
         # Right plane
@@ -177,7 +195,9 @@ def slice_box(args):
             "sx": [x_start, x_stop],
             "sy": [y_start, y_stop],  # Slice in limit_level grid
             "data": [expand_array(arr, factor).copy() for arr in arr_data],
-            "normal": normal_grid[idx_right],  # normal position for interpolation
+            "normal": normal_grid[
+                idx_right
+                ],  # normal position for interpolation
             "level": Lv,
         }
     # Keep to recreate the 2D plotfile
@@ -214,9 +234,11 @@ def plate_box(args):
     indexes = args["indexes"]
     cfile = args["cfile"]
     offset = args["offset"]
+    # Make sure we really need this variable
     box = args["box"]
     cx = args["cx"]
     cy = args["cy"]
+    # Make sure we really need this variable
     dx = args["dx"]
     # Factor between curent grid and covering grid
     factor = 2 ** (limit_level - Lv)

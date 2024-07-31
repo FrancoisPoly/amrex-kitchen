@@ -9,6 +9,7 @@ from amr_kitchen import PlotfileCooker
 from amr_kitchen.utils import (expand_array3d,
                                indices_from_header)
 
+
 def readfieldfrombinfile(args):
     """
     Read all arrays for a single field in a binary file
@@ -31,9 +32,10 @@ def readfieldfrombinfile(args):
                 indexes.append(idx)
                 remainder = np.prod(tshape)*8 - np.prod(shape)*FIELD_INDEX*8 - np.prod(shape)*8
                 bfile.seek(remainder, 1)
-            except Exception as e:
+            except Exception:
                 break
     return indexes, arrays
+
 
 def main():
     # Argument parser
@@ -53,8 +55,11 @@ def main():
             help="Output file to override the default")
     parser.add_argument(
             "--dtype", "-d", type=str, default="float64",
-            help=("Data type used (defaults to float64), but float32 or integer"
-                  " types can be used to save space (this is slower)"))
+            help=("""
+                  Data type used (defaults to float64), but float32 or integer
+                  types can be used to save space (this is slower)
+                  """)
+            )
     parser.add_argument(
             "--nochecks", "-y", action="store_true",
             help="Do not prompt if the required memory is acceptable")
@@ -81,7 +86,6 @@ def main():
 
     # Define the multiprocessing functions
 
-
     # Covering grid array
     grid_shape = pck.grid_sizes[pck.limit_level]
     dtype_size = np.array([], dtype=args.dtype).itemsize
@@ -93,7 +97,11 @@ def main():
         do_grid = input((f"The uniform grid will require {human_size} in memory."
                           " go ahead with the computation (y/n)? "))
     if do_grid == 'n':
-        print("You can use less precise data types to reduce the required memory.")
+        print(
+            """
+            You can use less precise data types
+            to reduce the required memory.
+            """)
         sys.exit()
     elif do_grid == 'y':
         data = np.zeros(pck.grid_sizes[pck.limit_level], dtype=args.dtype)
@@ -106,12 +114,13 @@ def main():
             read_order = np.flip(np.argsort(sizes))
             print('Level', lv)
             factor = 2**(pck.limit_level - lv)
-            mp_inputs = [{'N_FIELDS':N_FIELDS,
-                          'FIELD_INDEX':FIELD_INDEX,
-                          'fname':binfiles[i]} for i in read_order]
+            mp_inputs = [{'N_FIELDS': N_FIELDS,
+                          'FIELD_INDEX': FIELD_INDEX,
+                          'fname': binfiles[i]} for i in read_order]
             with multiprocessing.Pool() as pool:
                 prog = tqdm(total=len(binfiles))
-                for res in pool.imap_unordered(readfieldfrombinfile, mp_inputs):
+                for res in pool.imap_unordered(readfieldfrombinfile,
+                                               mp_inputs):
                     prog.update(1)
                     for idx, arr in zip(res[0], res[1]):
                         data[factor * idx[0][0]:(idx[1][0]+1) * factor,
@@ -123,6 +132,7 @@ def main():
                     data)
         else:
             np.save(args.outfile, data)
+
 
 if __name__ == "__main__":
     main()

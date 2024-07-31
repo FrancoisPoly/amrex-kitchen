@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 from importlib.util import module_from_spec, spec_from_file_location
 from inspect import signature
 
@@ -37,7 +36,7 @@ def chefs_knife_single_field(args):
                 try:
                     datashape = shape_from_header(header)
                 # This raises when the line is not a header
-                except Exception as e:
+                except Exception:
                     break
                 # Store byte position in new file
                 offsets.append(bfw.tell())
@@ -51,7 +50,7 @@ def chefs_knife_single_field(args):
                 arr = np.fromfile(bfr, "float64", np.prod(datashape))
                 arr = arr.reshape(datashape, order="F")
                 # Isolate the temperature and mass fractions
-                Y = arr[:, :, :, args["sp_start"] : args["sp_end"]]
+                Y = arr[:, :, :, args["sp_start"]: args["sp_end"]]
                 T = arr[:, :, :, args["id_temp"]]
                 P = PRESSURES[boxshape]
                 # Clean the mass fractions and temp so the thermo
@@ -89,21 +88,22 @@ def chefs_knife_byspecies_field(args):
                 try:
                     datashape = shape_from_header(header)
                 # This raises when the line is not a header
-                except Exception as e:
+                except Exception:
                     break
                 # Store byte position in new file
                 offsets.append(bfw.tell())
                 # shape of the box
                 boxshape = tuple([datashape[i] for i in range(3)])
                 # Compute the new binary header (Number of species)
-                header_w = header.replace(f"{datashape[-1]}\n", f"{outnfields}\n")
+                header_w = header.replace(f"{datashape[-1]}\n",
+                                          f"{outnfields}\n")
                 # Write the new header
                 bfw.write(header_w.encode("ascii"))
                 # Read the data
                 arr = np.fromfile(bfr, "float64", np.prod(datashape))
                 arr = arr.reshape(datashape, order="F")
                 # Isolate the temperature and mass fractions
-                Y = arr[:, :, :, args["sp_start"] : args["sp_end"]]
+                Y = arr[:, :, :, args["sp_start"]: args["sp_end"]]
                 T = arr[:, :, :, args["id_temp"]]
                 P = PRESSURES[boxshape]
                 # Clean the mass fractions and temp so the thermo
@@ -143,21 +143,22 @@ def chefs_knife_byreaction_field(args):
                 try:
                     datashape = shape_from_header(header)
                 # This raises when the line is not a header
-                except Exception as e:
+                except Exception:
                     break
                 # Store byte position in new file
                 offsets.append(bfw.tell())
                 # shape of the box
                 boxshape = tuple([datashape[i] for i in range(3)])
                 # Compute the new binary header (Always one field)
-                header_w = header.replace(f"{datashape[-1]}\n", f"{outnfields}\n")
+                header_w = header.replace(f"{datashape[-1]}\n",
+                                          f"{outnfields}\n")
                 # Write the new header
                 bfw.write(header_w.encode("ascii"))
                 # Read the data
                 arr = np.fromfile(bfr, "float64", np.prod(datashape))
                 arr = arr.reshape(datashape, order="F")
                 # Isolate the temperature and mass fractions
-                Y = arr[:, :, :, args["sp_start"] : args["sp_end"]]
+                Y = arr[:, :, :, args["sp_start"]: args["sp_end"]]
                 T = arr[:, :, :, args["id_temp"]]
                 P = PRESSURES[boxshape]
                 # Clean the mass fractions and temp so the thermo
@@ -196,7 +197,7 @@ def chefs_knife_user_sarray(args):
                 try:
                     datashape = shape_from_header(header)
                 # This raises when the line is not a header
-                except Exception as e:
+                except Exception:
                     break
                 # Store byte position in new file
                 offsets.append(bfw.tell())
@@ -210,7 +211,7 @@ def chefs_knife_user_sarray(args):
                 arr = np.fromfile(bfr, "float64", np.prod(datashape))
                 arr = arr.reshape(datashape, order="F")
                 # Isolate the temperature and mass fractions
-                Y = arr[:, :, :, args["sp_start"] : args["sp_end"]]
+                Y = arr[:, :, :, args["sp_start"]: args["sp_end"]]
                 T = arr[:, :, :, args["id_temp"]]
                 P = PRESSURES[boxshape]
                 # Clean the mass fractions and temp so the thermo
@@ -252,11 +253,12 @@ def chefs_knife_user_pfile(args):
                 try:
                     datashape = shape_from_header(header)
                 # This raises when the line is not a header
-                except Exception as e:
+                except Exception:
                     break
                 # Store byte position in new file
                 offsets.append(bfw.tell())
                 # shape of the box
+                # See if we realy need this line:
                 boxshape = tuple([datashape[i] for i in range(3)])
                 # Compute the new binary header (Always one field)
                 header_w = header.replace(f"{datashape[-1]}\n", "1\n")
@@ -424,7 +426,9 @@ class Chef(PlotfileCooker):
                 #     element = reactions[0]
                 # or type(reactions) == str:
                 #     element = reactions
-                # self.rx_indexes = [i for i, rx in gas.reactions() if element in rx]
+                # self.rx_indexes = [
+                # i for i, rx in gas.reactions() if element in rx]
+                # ]
             else:
                 self.requires_sol = True
                 self.outfields = [self.cookfields[recipe]]
@@ -454,7 +458,9 @@ class Chef(PlotfileCooker):
             self.idx_O2 = self.gas.species_index("O2")
             # Index of species in the output
             if recipe != "user" and species is not None:
-                self.sp_indexes = [self.gas.species_index(sp) for sp in species]
+                self.sp_indexes = [
+                    self.gas.species_index(sp) for sp in species
+                ]
 
     def cook(self):
         """
@@ -508,7 +514,8 @@ class Chef(PlotfileCooker):
             else:
                 print(f"Cooking level {lv} in parallel")
                 pool = Pool()
-                output = tqdm(pool.imap(self.knife, mp_calls), total=len(mp_calls))
+                output = tqdm(pool.imap(self.knife, mp_calls),
+                              total=len(mp_calls))
             # Reorder the offsets to match the box order
             mapped_offsets = np.empty(len(self.boxes[lv]), dtype=int)
             mapped_mins = np.empty(
@@ -543,7 +550,8 @@ class Chef(PlotfileCooker):
         recipe_location = os.path.join(*os.path.split(recipe_file)[:-1])
         sys.path.append(recipe_location)
         # Get the module spec from the python file
-        mod_spec = spec_from_file_location(name="user_recipe", location=recipe_file)
+        mod_spec = spec_from_file_location(name="user_recipe",
+                                           location=recipe_file)
         # Define the module placeholder
         recipe_module = module_from_spec(mod_spec)
         # Import the module
@@ -602,14 +610,14 @@ class Chef(PlotfileCooker):
             if f"Y({sp.name})" not in self.fields:
                 raise ValueError(
                     (
-                        f"plotfile {plotfile} is missing field"
+                        f"plotfile {self.plotfile} is missing field"
                         f" Y({sp.name}) to set thermochemical"
                         f" state with kinetics {mech}"
                     )
                 )
         # Check that the plotfile has temperature
         if "temp" not in self.fields:
-            raise ValueError(f"plotfile {plotfile} is missing 'temp' field")
+            raise ValueError(f"plotfile {self.plotfile} missing 'temp' field")
         # We need pressure (could default to 1 atm)
         if pressure is None:
             raise ValueError(
@@ -716,35 +724,42 @@ class Chef(PlotfileCooker):
                 # Write the Level path info
                 hfile.write(f"Level_{lv}/Cell\n")
 
-    def update_cell_header(self, lv, cell_header_r, new_offsets, new_mins, new_maxs):
+    def update_cell_header(self,
+                           lv,
+                           cell_header_r,
+                           new_offsets,
+                           new_mins,
+                           new_maxs):
         """
         Update the new Cell header
         """
-        cell_header_w = os.path.join(self.outdir, self.cell_paths[lv], "Cell_H")
+        cell_header_w = os.path.join(self.outdir,
+                                     self.cell_paths[lv],
+                                     "Cell_H")
 
         with open(os.path.join(os.getcwd(), cell_header_w), "w") as ch_w:
             with open(os.path.join(os.getcwd(), cell_header_r), "r") as ch_r:
                 # First two lines
                 for i in range(2):
-                    l = ch_r.readline()
-                    ch_w.write(l)
+                    line = ch_r.readline()
+                    ch_w.write(line)
                 # Number of fields
                 _ = ch_r.readline()
                 ch_w.write(f"{len(self.outfields)}\n")
                 # Mesh stays the same
                 while True:
-                    l = ch_r.readline()
-                    if "FabOnDisk:" in l:
-                        new_l = l.split()[:-1]
+                    line = ch_r.readline()
+                    if "FabOnDisk:" in line:
+                        new_l = line.split()[:-1]
                         new_l.append(str(new_offsets[0]))
                         ch_w.write(" ".join(new_l) + "\n")
                         break
                     else:
-                        ch_w.write(l)
+                        ch_w.write(line)
                 # Write the cell indexes
                 for fst in new_offsets[1:]:
-                    l = ch_r.readline()
-                    new_l = l.split()[:-1]
+                    line = ch_r.readline()
+                    new_l = line.split()[:-1]
                     new_l.append(str(fst))
                     ch_w.write(" ".join(new_l) + "\n")
                 # Blank line

@@ -1,9 +1,4 @@
 import argparse
-import os
-import time
-
-import numpy as np
-from tqdm import tqdm
 
 from .taste import Taster
 
@@ -14,7 +9,8 @@ def main():
         description="Validate the sanity of AMReX plotfiles"
     )
 
-    parser.add_argument("plotfile", type=str, help="Path of the plotfile to validate")
+    parser.add_argument("plotfile", type=str,
+                        help="Path of the plotfile to validate")
     parser.add_argument(
         "--limit_level",
         "-l",

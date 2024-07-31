@@ -1,9 +1,4 @@
 import argparse
-import os
-import time
-
-import numpy as np
-from tqdm import tqdm
 
 from .chef import Chef
 
@@ -14,13 +9,18 @@ def main():
         description="Compute derived quantities from AMReX plotfiles"
     )
 
-    parser.add_argument("plotfile", type=str, help="Path of the plotfile to cook")
+    parser.add_argument("plotfile",
+                        type=str,
+                        help="Path of the plotfile to cook")
     parser.add_argument(
         "--outdir",
         "-o",
         type=str,
         help=(
-            "Output path of the generated plotfile" " (defaults to input_plotfile'_ck' "
+            """
+            Output path of the generated plotfile
+            (defaults to input_plotfile_ck)
+            """
         ),
     )
     parser.add_argument(
@@ -65,7 +65,8 @@ def main():
         ),
     )
     parser.add_argument(
-        "--pressure", "-p", type=float, help="Pressure of the simulation data (atm)"
+        "--pressure", "-p", type=float,
+        help="Pressure of the simulation data (atm)"
     )
 
     args = parser.parse_args()

@@ -1,4 +1,3 @@
-import os
 import unittest
 
 import numpy as np
@@ -45,6 +44,7 @@ class TestSliceData(unittest.TestCase):
                         shape = [idx[1][i] - idx[0][i] + 1 for i in range(hdr.ndims)]
                         shape.append(len(hdr.fields))
                         bf.seek(ofs)
+                        # Make sure we really need this variable
                         arr = np.fromfile(bf, "float64", np.prod(shape))
 
     def test_bybinfile_iterator3d(self):
@@ -56,4 +56,5 @@ class TestSliceData(unittest.TestCase):
                         shape = [idx[1][i] - idx[0][i] + 1 for i in range(hdr.ndims)]
                         shape.append(len(hdr.fields))
                         bf.seek(ofs)
+                        # Make sure we really need this variable
                         arr = np.fromfile(bf, "float64", np.prod(shape))

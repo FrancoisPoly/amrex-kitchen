@@ -9,10 +9,14 @@ from .pestle import field_units, volume_integral
 def main():
     # Argument parser
     parser = argparse.ArgumentParser(
-        description="Prints the volume integral of the chosen field in a plotfile"
+        description="""
+                    Prints the volume integral
+                    of the chosen field in a plotfile
+                    """
     )
 
-    parser.add_argument("--variable", "-v", type=str, help="Variable to integrate")
+    parser.add_argument("--variable", "-v", type=str,
+                        help="Variable to integrate")
     parser.add_argument(
         "--limit_level", "-l", type=int, help="Maximum AMR Level considered"
     )
@@ -28,7 +32,8 @@ def main():
             "\n value * dV * volFrac"
         ),
     )
-    parser.add_argument("plotfile", type=str, help="Path of the plotfile to integrate")
+    parser.add_argument("plotfile", type=str,
+                        help="Path of the plotfile to integrate")
 
     args = parser.parse_args()
     """
@@ -40,7 +45,7 @@ def main():
     # Creating a PlotfileCooker instance
     try:
         pck = PlotfileCooker(args.plotfile, ghost=True)
-    except:
+    except Exception:
         print("This tool is not supported for plotfiles with ndims < 3")
         print(
             (

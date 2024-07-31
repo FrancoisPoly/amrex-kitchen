@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 
 import numpy as np
 
@@ -9,9 +8,12 @@ from amr_kitchen import PlotfileCooker
 
 def main():
     # Argument parser
-    parser = argparse.ArgumentParser(description="A quick taste of the plotfile")
+    parser = argparse.ArgumentParser(
+        description="A quick taste of the plotfile"
+        )
 
-    parser.add_argument("plotfile", type=str, help="Path of the plotfile to filter")
+    parser.add_argument("plotfile", type=str,
+                        help="Path of the plotfile to filter")
 
     parser.add_argument("--variable", "-v", type=str, help="Variable to taste")
 
@@ -38,11 +40,12 @@ def main():
             lvmax = np.max(vmaxes)
             idxmax = np.argmax(vmaxes)
             ptmax = hdr.box_centers[lv][idxmax]
+            # Make sure we really need this variable
             boxmax = hdr.boxes[lv][idxmax]
 
             if lvmax > 1e4:
                 print(f"Max {args.variable} at Level {lv}: {lvmax:.2e}")
-                print(f"Max value position", ptmax)
+                print(f"Max value position, {ptmax}")
             elif lvmax > 1e2:
                 print(f"Max {args.variable} at Level {lv}: {lvmax:.1f}")
             elif lvmax > 1:

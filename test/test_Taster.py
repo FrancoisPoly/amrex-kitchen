@@ -1,5 +1,4 @@
 import os
-import shutil
 import unittest
 
 from amr_kitchen.taste import Taster
@@ -16,7 +15,9 @@ class TestTaste(unittest.TestCase):
         "test_assets", "bad_plotfiles", "plt_2d_badbinaryshape"
     )
 
-    badindexes_2d = os.path.join("test_assets", "bad_plotfiles", "plt_2d_badindexes")
+    badindexes_2d = os.path.join("test_assets",
+                                 "bad_plotfiles",
+                                 "plt_2d_badindexes")
 
     missingbindata_2d = os.path.join(
         "test_assets", "bad_plotfiles", "plt_2d_missingbindata"
@@ -30,7 +31,9 @@ class TestTaste(unittest.TestCase):
         "test_assets", "bad_plotfiles", "plt_3d_badbinaryshape"
     )
 
-    badindexes_3d = os.path.join("test_assets", "bad_plotfiles", "plt_3d_badindexes")
+    badindexes_3d = os.path.join("test_assets",
+                                 "bad_plotfiles",
+                                 "plt_3d_badindexes")
 
     missingbindata_3d = os.path.join(
         "test_assets", "bad_plotfiles", "plt_3d_missingbindata"

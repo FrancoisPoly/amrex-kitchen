@@ -3,6 +3,7 @@ import sys
 
 from amr_kitchen import PlotfileCooker
 
+
 def main():
     if sys.argv[1] in ['-h', '--help']:
         print(("Saves the PlotfileCooker object of a plotfile"

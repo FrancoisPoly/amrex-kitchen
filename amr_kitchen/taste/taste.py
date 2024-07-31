@@ -1,8 +1,5 @@
 import multiprocessing
 import os
-import pickle
-import sys
-import time
 import traceback
 
 import numpy as np
@@ -14,7 +11,6 @@ from amr_kitchen.utils import (
     header_from_indices,
     indexes_and_shape_from_header,
     shape_from_header,
-    shapes_from_header_vardims,
 )
 
 
@@ -26,6 +22,7 @@ def mp_read_binary_data(args):
     with minimal input by using the ascii encoded
     box headers
     """
+    # Make sure we really need this variable
     bfilename = args[0]
     bfile_data = []
     with open(args, "rb") as bfile:
@@ -36,14 +33,16 @@ def mp_read_binary_data(args):
                 arr = np.fromfile(bfile, "float64", np.prod(shape))
                 arr = arr.reshape(shape, order="F")
                 bfile_data.append(arr)
-            except Exception as e:
+            except Exception:
                 break
     return bfile_data
 
 
 def mp_fun_headers(args):
     with open(args["bfile"], "rb") as bf:
-        for ofs, idx, bid in zip(args["offsets"], args["indices"], args["box_ids"]):
+        for ofs, idx, bid in zip(args["offsets"],
+                                 args["indices"],
+                                 args["box_ids"]):
             # This is pretty fast because we barely
             # read any data (just one line per header)
             # so we can test this first before iterating
@@ -171,11 +170,17 @@ class Taster(PlotfileCooker):
             # Instantiate the parent class (PlotfileCooker)
             if self.check_binary_data:
                 super().__init__(
-                    plt_file, limit_level=limit_level, validate_mode=True, maxmins=True
+                    plt_file,
+                    limit_level=limit_level,
+                    validate_mode=True,
+                    maxmins=True
                 )
             else:
                 super().__init__(
-                    plt_file, limit_level=limit_level, validate_mode=True, maxmins=False
+                    plt_file,
+                    limit_level=limit_level,
+                    validate_mode=True,
+                    maxmins=False
                 )
             self.taste()
         # This catches errors in PlotfileCooker
@@ -259,7 +264,9 @@ class Taster(PlotfileCooker):
         Check that no binary file is missing
         """
         for lv in range(self.limit_level + 1):
-            lv_files = os.listdir(os.path.join(self.pfile, self.cell_paths[lv]))
+            lv_files = os.listdir(
+                os.path.join(self.pfile, self.cell_paths[lv])
+                )
             for bfile_path in np.unique(self.cells[lv]["files"]):
                 bfile = os.path.split(bfile_path)[-1]
                 if bfile not in lv_files:
@@ -440,7 +447,8 @@ class Taster(PlotfileCooker):
                 bfile_data["bids"] = box_ids
             # Iterate over every binary file
             for bfile, data_out in zip(
-                bfile_data.keys(), pool.imap(mp_read_binary_data, bfile_data.keys())
+                bfile_data.keys(),
+                self.pool.imap(mp_read_binary_data, bfile_data.keys())
             ):
                 # Loop over every box as the data is read
                 # TODO: maybe it would be faster to compute the np.max/np.nanmax

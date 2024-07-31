@@ -1,5 +1,4 @@
 import os
-import shutil
 import unittest
 
 from amr_kitchen import PlotfileCooker
@@ -31,13 +30,19 @@ class Pestle(unittest.TestCase):
     def test_with_ref_3d(self):
         pck = PlotfileCooker(self.example3d, ghost=True)
         for ky in self.ref_vals_3d:
-            self.assertAlmostEqual(volume_integral(pck, ky), self.ref_vals_3d[ky])
+            self.assertAlmostEqual(
+                volume_integral(pck, ky), self.ref_vals_3d[ky]
+                )
 
     def test_reg_with_volfrac(self):
         pck = PlotfileCooker(self.exampleEB, ghost=True)
         self.assertAlmostEqual(
-            volume_integral(pck, "density", use_volfrac=True), self.ref_regtest_volfract
+            volume_integral(pck,
+                            "density",
+                            use_volfrac=True), self.ref_regtest_volfract
         )
         self.assertAlmostEqual(
-            volume_integral(pck, "density", use_volfrac=False), self.ref_amrex_novolfrac
+            volume_integral(pck,
+                            "density",
+                            use_volfrac=False), self.ref_amrex_novolfrac
         )

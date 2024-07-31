@@ -1,21 +1,10 @@
+from .mandoline import Mandoline
+
 import argparse
-import multiprocessing
-import os
-import pickle
-import shutil
-import sys
-import time
 
 import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
 
 matplotlib.use("Agg")
-from amr_kitchen import PlotfileCooker
-
-# from .blade import slice_box, plate_box
-from .mandoline import Mandoline
-from .utils import plotfile_ndims, sanitize_field_name
 
 
 def main():
@@ -28,7 +17,8 @@ def main():
         description="Fast  slices of (large) AMReX plotfiles"
     )
 
-    parser.add_argument("plotfile", type=str, help="Path of the plotfile to slice")
+    parser.add_argument("plotfile", type=str,
+                        help="Path of the plotfile to slice")
     parser.add_argument(
         "--normal",
         "-n",
@@ -59,7 +49,8 @@ def main():
         help="Maximum AMR level loaded, defaults to finest level",
     )
     parser.add_argument(
-        "--serial", "-s", action="store_true", help="Flag to disable multiprocessing"
+        "--serial", "-s", action="store_true",
+        help="Flag to disable multiprocessing"
     )
     parser.add_argument(
         "--format",
@@ -90,10 +81,12 @@ def main():
         help="A named matplotlib colormap, defaults to jet",
     )
     parser.add_argument(
-        "--minimum", "-m", type=float, help="Minimum value used in the colormap"
+        "--minimum", "-m", type=float,
+        help="Minimum value used in the colormap"
     )
     parser.add_argument(
-        "--maximum", "-M", type=float, help="Maximum value used in the colormap"
+        "--maximum", "-M", type=float,
+        help="Maximum value used in the colormap"
     )
     parser.add_argument(
         "--log",

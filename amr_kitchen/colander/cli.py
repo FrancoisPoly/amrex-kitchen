@@ -1,8 +1,4 @@
 import argparse
-import os
-import time
-
-import numpy as np
 
 from .colander import Colander
 
@@ -13,7 +9,8 @@ def main():
         description="Remove field and levels from AMReX plotfiles"
     )
 
-    parser.add_argument("plotfile", type=str, help="Path of the plotfile to filter")
+    parser.add_argument("plotfile", type=str,
+                        help="Path of the plotfile to filter")
 
     parser.add_argument(
         "--variables",
@@ -29,10 +26,12 @@ def main():
         help="Maximum AMR Level to keep in the filtered plotfile",
     )
     parser.add_argument(
-        "--serial", "-s", action="store_true", help="Flag to disable multiprocessing"
+        "--serial", "-s", action="store_true",
+        help="Flag to disable multiprocessing"
     )
     parser.add_argument(
-        "--output", "-o", type=str, help="Output path to store the filtered plotfile"
+        "--output", "-o", type=str,
+        help="Output path to store the filtered plotfile"
     )
 
     args = parser.parse_args()

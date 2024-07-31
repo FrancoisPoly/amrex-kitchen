@@ -108,14 +108,18 @@ class TestSlice(unittest.TestCase):
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_user_sarr"),
-            recipe=os.path.join("test_assets", "user_recipes", "fuel_oxy_ratio.py"),
+            recipe=os.path.join("test_assets",
+                                "user_recipes",
+                                "fuel_oxy_ratio.py"),
             mech=self.drm19,
             serial=True,
             pressure=1.0,
         )
         plot_chef.cook()
         # TODO: validate data with existing plotfile
-        with open(os.path.join("test", "chef_test_user_sarr", "Header")) as hfile:
+        with open(os.path.join("test",
+                               "chef_test_user_sarr",
+                               "Header")) as hfile:
             hfile.readline()
             hfile.readline()
             self.assertTrue("omega_ratio_H2_O2" in hfile.readline())
@@ -124,15 +128,20 @@ class TestSlice(unittest.TestCase):
     def test_user_plotfile_recipe(self):
         plot_chef = Chef(
             self.pfile3d,
-            outfile=os.path.join("test", "chef_test_user_pfile"),
-            recipe=os.path.join("test_assets", "user_recipes", "mass_frac_ratio.py"),
+            outfile=os.path.join("test",
+                                 "chef_test_user_pfile"),
+            recipe=os.path.join("test_assets",
+                                "user_recipes",
+                                "mass_frac_ratio.py"),
             mech=self.drm19,
             serial=True,
             pressure=1.0,
         )
         plot_chef.cook()
         # TODO: validate data with existing plotfile
-        with open(os.path.join("test", "chef_test_user_pfile", "Header")) as hfile:
+        with open(os.path.join("test",
+                               "chef_test_user_pfile",
+                               "Header")) as hfile:
             hfile.readline()
             hfile.readline()
             self.assertTrue("Y_ratio_H2_CH4" in hfile.readline())
@@ -150,7 +159,9 @@ class TestSlice(unittest.TestCase):
         )
         plot_chef.cook()
         # TODO: validate values inside the plotfile
-        with open(os.path.join("test", "chef_test_byreaction", "Header")) as hfile:
+        with open(os.path.join("test",
+                               "chef_test_byreaction",
+                               "Header")) as hfile:
             hfile.readline()
             hfile.readline()
             fields = []
