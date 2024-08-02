@@ -16,7 +16,9 @@ SARRAYS = None
 PRESSURES = None
 
 
-def chefs_knife_single_field(args):
+def chefs_knife_single_field(args: dict) -> tuple[list[int],
+                                                  np.ndarray,
+                                                  np.ndarray]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -67,7 +69,9 @@ def chefs_knife_single_field(args):
     return offsets, np.array([mins]).T, np.array([maxs]).T
 
 
-def chefs_knife_byspecies_field(args):
+def chefs_knife_byspecies_field(args: dict) -> tuple[list[int],
+                                                     np.ndarray,
+                                                     np.ndarray]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -122,7 +126,9 @@ def chefs_knife_byspecies_field(args):
     return offsets, np.array([mins]), np.array([maxs])
 
 
-def chefs_knife_byreaction_field(args):
+def chefs_knife_byreaction_field(args: dict) -> tuple[list[int],
+                                                      np.ndarray,
+                                                      np.ndarray]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -177,7 +183,9 @@ def chefs_knife_byreaction_field(args):
     return offsets, np.array([mins]), np.array([maxs])
 
 
-def chefs_knife_user_sarray(args):
+def chefs_knife_user_sarray(args: dict) -> tuple[list[int],
+                                                 np.ndarray,
+                                                 np.ndarray]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -231,7 +239,9 @@ def chefs_knife_user_sarray(args):
     return offsets, np.array([mins]).T, np.array([maxs]).T
 
 
-def chefs_knife_user_pfile(args):
+def chefs_knife_user_pfile(args: dict) -> tuple[list[int],
+                                                np.ndarray,
+                                                np.ndarray]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -335,15 +345,15 @@ class Chef(PlotfileCooker):
 
     def __init__(
         self,
-        plotfile=None,
-        recipe=None,
-        outfile=None,
-        species=None,
-        reactions=None,
-        mech=None,
-        pressure=None,
-        serial=False,
-    ):
+        plotfile: str = None,
+        recipe: str = None,
+        outfile: str = None,
+        species: list[str] = None,
+        reactions: list[int] = None,
+        mech: str = None,
+        pressure: float = None,
+        serial: bool = False,
+    ) -> None:
         # Instantiate the PlotfileCooker parent
         super().__init__(plotfile)
         # Only work on 3 dimension data
@@ -462,7 +472,7 @@ class Chef(PlotfileCooker):
                     self.gas.species_index(sp) for sp in species
                 ]
 
-    def cook(self):
+    def cook(self) -> None:
         """
         Function performing the computing and output
         of the new field data
@@ -537,7 +547,7 @@ class Chef(PlotfileCooker):
                 mapped_maxs,
             )
 
-    def import_user_recipe(self, recipe_file):
+    def import_user_recipe(self, recipe_file: str) -> str:
         """
         If the path to a .py file is supplied as the recipe
         this method uses some importlib sys.path manipulation
@@ -558,9 +568,9 @@ class Chef(PlotfileCooker):
         mod_spec.loader.exec_module(recipe_module)
         # Get the recipe from the module
         recipe_fun = recipe_module.recipe
-        return recipe_fun
+        return recipe_fun 
 
-    def get_user_recipe_info(self):
+    def get_user_recipe_info(self) -> tuple[bool, list[str]]:
         """
         Find out the output field name and
         if the recipe requires a SolutionArray
@@ -598,7 +608,7 @@ class Chef(PlotfileCooker):
             outfields = ["user_defined"]
         return solution_mode, outfields
 
-    def sarray_input(self, mech, pressure):
+    def sarray_input(self, mech: str, pressure: float) -> tuple[any, float, int, int]:
         """
         Method to compute the input needed to create
         the SolutionArray for each box
@@ -649,7 +659,7 @@ class Chef(PlotfileCooker):
         # the plotfile but not in the same order
         return gas, P, species_start, species_end
 
-    def set_global_sarrays(self):
+    def set_global_sarrays(self) -> None:
         """
         Set the dictionnary maps for pressure
         and placeholder solution arrays for every
@@ -663,7 +673,7 @@ class Chef(PlotfileCooker):
             SARRAYS[shape] = ct.SolutionArray(self.gas, shape)
             PRESSURES[shape] = self.P * np.ones(shape)
 
-    def write_global_header(self):
+    def write_global_header(self) -> None:
         """
         Write the plotfile header for the plotfile with filtered
         data
@@ -725,11 +735,11 @@ class Chef(PlotfileCooker):
                 hfile.write(f"Level_{lv}/Cell\n")
 
     def update_cell_header(self,
-                           lv,
-                           cell_header_r,
-                           new_offsets,
-                           new_mins,
-                           new_maxs):
+                           lv: int,
+                           cell_header_r: str,
+                           new_offsets: np.ndarray,
+                           new_mins: np.ndarray,
+                           new_maxs: np.ndarray) -> None:
         """
         Update the new Cell header
         """

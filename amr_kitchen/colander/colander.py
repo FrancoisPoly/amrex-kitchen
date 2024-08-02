@@ -7,7 +7,7 @@ import numpy as np
 from amr_kitchen import PlotfileCooker
 
 
-def parallel_strain_3d(args):
+def parallel_strain_3d(args: dict):
     """
     Cook a single cell binary file
     Multiprocessing function
@@ -297,3 +297,6 @@ class Colander(PlotfileCooker):
                         hfile.write(f"{box[d][0]} {box[d][1]}\n")
                 # Write the Level path info
                 hfile.write(f"Level_{lv}/Cell\n")
+
+a = Colander("./test_assets/example_plt_3d",output="./amr_kitchen/colander/temp",variables=["temp"])
+a.strain()
