@@ -22,19 +22,19 @@ class Pestle(unittest.TestCase):
     ref_regtest_volfract = 0.000072843417981
     ref_amrex_novolfrac = 7.315143997e-05
 
-    def test_fail_on_2d(self):
+    def test_fail_on_2d(self) -> None:
         with self.assertRaises(ValueError):
             pck = PlotfileCooker(self.example2d, ghost=True)
             _ = volume_integral(pck, "temp")
 
-    def test_with_ref_3d(self):
+    def test_with_ref_3d(self) -> None:
         pck = PlotfileCooker(self.example3d, ghost=True)
         for ky in self.ref_vals_3d:
             self.assertAlmostEqual(
                 volume_integral(pck, ky), self.ref_vals_3d[ky]
                 )
 
-    def test_reg_with_volfrac(self):
+    def test_reg_with_volfrac(self) -> None:
         pck = PlotfileCooker(self.exampleEB, ghost=True)
         self.assertAlmostEqual(
             volume_integral(pck,

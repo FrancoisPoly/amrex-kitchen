@@ -11,14 +11,17 @@ from tqdm import tqdm
 from amr_kitchen import PlotfileCooker
 from amr_kitchen.utils import shape_from_header
 
+# Types
+ArrayLike = np.ndarray
+
 # GLOBALS
 SARRAYS = None
 PRESSURES = None
 
 
 def chefs_knife_single_field(args: dict) -> tuple[list[int],
-                                                  np.ndarray,
-                                                  np.ndarray]:
+                                                  ArrayLike,
+                                                  ArrayLike]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -70,8 +73,8 @@ def chefs_knife_single_field(args: dict) -> tuple[list[int],
 
 
 def chefs_knife_byspecies_field(args: dict) -> tuple[list[int],
-                                                     np.ndarray,
-                                                     np.ndarray]:
+                                                     ArrayLike,
+                                                     ArrayLike]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -127,8 +130,8 @@ def chefs_knife_byspecies_field(args: dict) -> tuple[list[int],
 
 
 def chefs_knife_byreaction_field(args: dict) -> tuple[list[int],
-                                                      np.ndarray,
-                                                      np.ndarray]:
+                                                      ArrayLike,
+                                                      ArrayLike]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -184,8 +187,8 @@ def chefs_knife_byreaction_field(args: dict) -> tuple[list[int],
 
 
 def chefs_knife_user_sarray(args: dict) -> tuple[list[int],
-                                                 np.ndarray,
-                                                 np.ndarray]:
+                                                 ArrayLike,
+                                                 ArrayLike]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -240,8 +243,8 @@ def chefs_knife_user_sarray(args: dict) -> tuple[list[int],
 
 
 def chefs_knife_user_pfile(args: dict) -> tuple[list[int],
-                                                np.ndarray,
-                                                np.ndarray]:
+                                                ArrayLike,
+                                                ArrayLike]:
     """
     __ Multiprocessing function __
     Cooks a single binary file
@@ -737,9 +740,9 @@ class Chef(PlotfileCooker):
     def update_cell_header(self,
                            lv: int,
                            cell_header_r: str,
-                           new_offsets: np.ndarray,
-                           new_mins: np.ndarray,
-                           new_maxs: np.ndarray) -> None:
+                           new_offsets: ArrayLike,
+                           new_mins: ArrayLike,
+                           new_maxs: ArrayLike) -> None:
         """
         Update the new Cell header
         """

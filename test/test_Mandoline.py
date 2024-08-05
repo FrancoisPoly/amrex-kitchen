@@ -11,7 +11,7 @@ class TestMandoline(unittest.TestCase):
     pfile3d = "test_assets/example_plt_3d"
     ref_s3d = "test_assets/ref_slices_3d"
 
-    def test_find_field(self):
+    def test_find_field(self) -> None:
         Lv = 1
 
         c = Mandoline(self.pfile2d, "temp", limit_level=Lv)
@@ -30,19 +30,19 @@ class TestMandoline(unittest.TestCase):
             ValueError, Mandoline, self.pfile2d, "wrong_field", limit_level=Lv
         )
 
-    def test_limit_level_array_2d(self):
+    def test_limit_level_array_2d(self) -> None:
         c = Mandoline(self.pfile2d, "temp")
         arr = c.limit_level_arr()
         self.assertEqual(512, arr.shape[0])
         self.assertEqual(512, arr.shape[1])
 
-    def test_limit_level_array_3d(self):
+    def test_limit_level_array_3d(self) -> None:
         c = Mandoline(self.pfile3d, "temp")
         arr = c.limit_level_arr()
         self.assertEqual(32, arr.shape[0])
         self.assertEqual(32, arr.shape[1])
 
-    def test_slice_plane_coordinates(self):
+    def test_slice_plane_coordinates(self) -> None:
         c = Mandoline(self.pfile3d, "temp", 1)
         sx, sy = c.slice_plane_coordinates()
         self.assertTrue(sx[0] > c.geo_low[1])
@@ -50,19 +50,19 @@ class TestMandoline(unittest.TestCase):
         self.assertTrue(sy[0] > c.geo_low[2])
         self.assertTrue(sy[-1] < c.geo_high[2])
 
-    def test_slice_data_2d_serial(self):
+    def test_slice_data_2d_serial(self) -> None:
         m = Mandoline(self.pfile2d, "temp", serial=True)
         out = m.slice(fformat="return")
         self.assertAlmostEqual(np.min(out["temp"]), 299.9403143172542)
         self.assertAlmostEqual(np.max(out["temp"]), 1517.690555398803)
 
-    def test_slice_data_2d_multiprocessing(self):
+    def test_slice_data_2d_multiprocessing(self) -> None:
         m = Mandoline(self.pfile2d, "temp", serial=False)
         out = m.slice(fformat="return")
         self.assertAlmostEqual(np.min(out["temp"]), 299.9403143172542)
         self.assertAlmostEqual(np.max(out["temp"]), 1517.690555398803)
 
-    def test_slice_data_3d_serial(self):
+    def test_slice_data_3d_serial(self) -> None:
         m = Mandoline(self.pfile3d, "temp", verbose=0, serial=True)
 
         # x normal slice
@@ -87,7 +87,7 @@ class TestMandoline(unittest.TestCase):
         self.assertAlmostEqual(np.max(out["temp"]), 1579.8536855390937)
         self.assertAlmostEqual(np.min(out["temp"]), 1579.7695283039257)
 
-    def test_slice_data_3d_multiprocessing(self):
+    def test_slice_data_3d_multiprocessing(self) -> None:
         m = Mandoline(self.pfile3d, "temp", verbose=0, serial=False)
         # x normal slice
         out = m.slice(normal=0, pos=0, fformat="return")
@@ -97,7 +97,7 @@ class TestMandoline(unittest.TestCase):
         self.assertAlmostEqual(np.max(out["temp"]), 1579.8536855390923)
         self.assertAlmostEqual(np.min(out["temp"]), 297.99999999999994)
 
-    def test_slice_to_array_3d(self):
+    def test_slice_to_array_3d(self) -> None:
         m = Mandoline(self.pfile3d, "temp", verbose=0, serial=True)
         # X normal
         out = m.slice(normal=0, fformat="return")

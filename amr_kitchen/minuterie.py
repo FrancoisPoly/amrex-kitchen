@@ -2,7 +2,7 @@ import os
 import sys
 
 
-def main():
+def main() -> None:
     if sys.argv[1] in ["-h", "--help"]:
         print("Display the current time step of a plotfile")
     else:

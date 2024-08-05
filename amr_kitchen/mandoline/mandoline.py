@@ -11,6 +11,11 @@ from amr_kitchen import PlotfileCooker
 
 from .blades import plate_box, slice_box
 
+from typing import TextIO
+
+# Types
+ArrayLike = np.ndarray
+
 
 class Mandoline(PlotfileCooker):
     """
@@ -22,12 +27,12 @@ class Mandoline(PlotfileCooker):
 
     def __init__(
         self,
-        plotfile,
-        fields=None,
-        limit_level=None,
-        serial=False,
-        verbose=None
-    ):
+        plotfile: str,
+        fields: list[str] = None,
+        limit_level: int = None,
+        serial: bool = False,
+        verbose: int = None
+    ) -> None:
         """
         Constructor for the mandoline object
         ----
@@ -71,11 +76,11 @@ class Mandoline(PlotfileCooker):
         self.pos = None
 
     def slice(self,
-              normal=None,
-              pos=None,
-              outfile=None,
-              fformat=None,
-              **pltkwargs):
+              normal: int = None,
+              pos: float = None,
+              outfile: str = None,
+              fformat: str = None,
+              **pltkwargs: any) -> any:
         """
         Slicing function of the Mandoline class
         ____
@@ -181,7 +186,11 @@ class Mandoline(PlotfileCooker):
                     np.around(time.time() - output_start, 2),
                 )
 
-    def thick_slice(self, normal=None, pos=None, outfile=None, thickness=None):
+    def thick_slice(self,
+                    normal: int = None,
+                    pos: float = None,
+                    outfile: str = None,
+                    thickness: float = None) -> None:
         """
         Non interpolated thick slices saved as AMReX plotfiles
         """
@@ -197,7 +206,7 @@ class Mandoline(PlotfileCooker):
         ngrid = np.arange(geo_lo, geo_hi, self.grid_sizes[0][self.cn])
         print(ngrid)
 
-    def plate(self, outfile=None, fformat=None, **pltkwargs):
+    def plate(self, outfile: str = None, fformat: str = None, **pltkwargs: any) -> any:
         """
         Alternate function to "slice" 2D plotfiles
         This is a conversion to uniform covering grid
@@ -279,7 +288,7 @@ class Mandoline(PlotfileCooker):
         elif fformat == "image":
             self.plot_slice(all_data, outfile, **pltkwargs)
 
-    def infer_figure_size(self):
+    def infer_figure_size(self) -> tuple[int, int]:
         """
         Determine a good figure size given
         the dataset aspect ratio
@@ -302,8 +311,13 @@ class Mandoline(PlotfileCooker):
         return figsize
 
     def plot_slice(
-        self, all_data, outfile, uselog=False, cmap=None, vmin=None, vmax=None
-    ):
+        self,
+        all_data: list,
+        outfile: str,
+        uselog: bool = False,
+        cmap: str = None,
+        vmin: float = None,
+        vmax: float = None) -> None:
         """
         Plot the slice data using matplotlib
         """
@@ -335,7 +349,7 @@ class Mandoline(PlotfileCooker):
 
             # Set face color to colormap minimum so masked
             # Values look good
-            plt.gca().set_facecolor(plt.cm.get_cmap(cmap)(0))
+            #plt.gca().set_facecolor(plt.cm.get_cmap(cmap)(0))
 
             # Plot the slice
             plt.pcolormesh(
@@ -371,7 +385,7 @@ class Mandoline(PlotfileCooker):
             if self.v > 0:
                 print(f"Done! ({np.around(time.time() - save_start, 2)} s)")
 
-    def compute_mpinput_2d(self, lv):
+    def compute_mpinput_2d(self, lv: int) -> list[dict]:
         """
         Compute the multiprocessing input for 2D plotfiles
         For the current AMR Level (lv)
@@ -400,7 +414,7 @@ class Mandoline(PlotfileCooker):
             pool_inputs.append(p_in)  # Add to inputs
         return pool_inputs
 
-    def compute_mpinput_3d(self, lv):
+    def compute_mpinput_3d(self, lv: int) -> list[dict]:
         """
         Find the intersecting boxes and add the to the
         multiprocessing input for a given level
@@ -438,7 +452,10 @@ class Mandoline(PlotfileCooker):
                 pool_inputs.append(p_in)  # Add to inputs
         return pool_inputs
 
-    def define_slicing_coordinates(self, normal=None, pos=None):
+    def define_slicing_coordinates(self,
+                                   normal: int = None,
+                                   pos: float = None
+                                   ) -> tuple[int, int, int, float]:
         """
         Parse the normal and position input to define the slicing
         coordinates (normal in in slice plane)
@@ -478,7 +495,7 @@ class Mandoline(PlotfileCooker):
 
         return cn, cx, cy, pos
 
-    def parse_input_fields(self, fields):
+    def parse_input_fields(self, fields: list[str]) -> tuple[list[str], list[int], bool]:
         """
         Parse the fields parsed argument input and define
         the indexes and names of the fields to slice
@@ -515,7 +532,7 @@ class Mandoline(PlotfileCooker):
 
         return fields, fidxs, do_grid_level
 
-    def format_array_output(self, all_data):
+    def format_array_output(self, all_data: list) -> dict:
         """
         Format the interpolated data to export as array
         """
@@ -535,7 +552,7 @@ class Mandoline(PlotfileCooker):
 
         return output
 
-    def fields_in_slice(self):
+    def fields_in_slice(self) -> list[str]:
         """
         Get the field names from the computed field indexes
         """
@@ -543,7 +560,7 @@ class Mandoline(PlotfileCooker):
         field_names = [all_names[idx] for idx in self.fidxs if idx is not None]
         return field_names
 
-    def default_output_path(self, fieldname=None):
+    def default_output_path(self, fieldname: str = None) -> str:
         """
         Define the default output path from the plotfile
         Supplied in the command line arguments
@@ -576,7 +593,7 @@ class Mandoline(PlotfileCooker):
         # Multi field slice
         return os.path.join(outroot, slicename + plotnum)
 
-    def header_load_info(self, ltime):
+    def header_load_info(self, ltime: float) -> None:
         """
         Print message acoording to the time it took
         to read the header
@@ -595,7 +612,7 @@ class Mandoline(PlotfileCooker):
             else:
                 pass
 
-    def limit_level_arr(self):
+    def limit_level_arr(self) -> ArrayLike:
         """
         Return an empty numpy array with the dimensions of the
         limit_level grid
@@ -607,7 +624,7 @@ class Mandoline(PlotfileCooker):
         arr = np.empty(shape)
         return arr
 
-    def reducemp_data_ortho(self, plane_data):
+    def reducemp_data_ortho(self, plane_data: dict) -> ArrayLike:
         """
         Parse the multiprocessing output and reduce it to
         Left and Right arrays for both sides of the plane
@@ -704,7 +721,9 @@ class Mandoline(PlotfileCooker):
             all_data.append(np.min(all_levels, axis=0).T)
         return all_data
 
-    def interpolate_bylevel(self, plane_data):
+    def interpolate_bylevel(self,
+                            plane_data: dict
+                            ) -> tuple[list[ArrayLike], list[list], list[dict]]:
         """
         Interpolate sliced output but keep the level separated
         to be able to save the data to an amrex plotfile
@@ -785,7 +804,7 @@ class Mandoline(PlotfileCooker):
 
         return all_data, box_indexes, box_headers
 
-    def slice_plane_coordinates(self):
+    def slice_plane_coordinates(self) -> tuple[ArrayLike, ArrayLike]:
         """
         Return the x and y grid corresponding to the slice
         array coordinates to plot the data after output
@@ -808,7 +827,10 @@ class Mandoline(PlotfileCooker):
 
         return x_grid, y_grid
 
-    def write_2d_slice_global_header(self, fobj, fnames, indexes):
+    def write_2d_slice_global_header(self,
+                                     fobj: TextIO,
+                                     fnames: list[str],
+                                     indexes: list[list]) -> None:
         """
         Write the plotfile header for the plotfile corresponding
         to the 2D slice
@@ -868,7 +890,11 @@ class Mandoline(PlotfileCooker):
             # Write the Level path info
             fobj.write(f"Level_{lv}/Cell\n")
 
-    def write_cell_data_at_level(self, outfile, lv, lvdata, indexes):
+    def write_cell_data_at_level(self,
+                                 outfile: str,
+                                 lv: int,
+                                 lvdata: list[ArrayLike],
+                                 indexes: list[int]) -> None:
         """
         Write the cell data and cell header at a given level
         outfile: plotfile directory

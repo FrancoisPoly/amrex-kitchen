@@ -2,8 +2,11 @@ import os
 
 import numpy as np
 
+# Types
+ArrayLike = np.ndarray
 
-def expand_array(arr, factor):
+
+def expand_array(arr: ArrayLike, factor: int) -> ArrayLike:
     """
     Data reading utility
     ----
@@ -27,7 +30,7 @@ def expand_array(arr, factor):
     return exp
 
 
-def sanitize_field_name(fname):
+def sanitize_field_name(fname: str) -> str:
     """
     Remove parentheses from field names
     so that we dont breack file systems
@@ -37,7 +40,7 @@ def sanitize_field_name(fname):
     return fname.replace("(", "_").replace(")", "")
 
 
-def plotfile_ndims(pfile):
+def plotfile_ndims(pfile: str) -> int:
     """
     Quick check of the dimensions of the plotfile
     """

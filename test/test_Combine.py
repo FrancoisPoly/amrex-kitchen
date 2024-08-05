@@ -11,7 +11,7 @@ class TestCombine(unittest.TestCase):
     pfile1 = os.path.join("test_assets", "plt1_Y")
     pfile2 = os.path.join("test_assets", "plt2_F")
 
-    def test_combine(self):
+    def test_combine(self) -> None:
         plt1 = PlotfileCooker(self.pfile1)
         plt2 = PlotfileCooker(self.pfile2)
         pltout = os.path.join("test", "plt_combine_out")

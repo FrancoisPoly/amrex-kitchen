@@ -9,7 +9,7 @@ class TestSlice(unittest.TestCase):
     pfile2d = os.path.join("test_assets", "example_plt_2d")
     pfile3d = os.path.join("test_assets", "example_plt_3d")
 
-    def test_backward_compatible_2d(self):
+    def test_backward_compatible_2d(self) -> None:
         """
         Keep all fields at all level and test
         that the resulting files are the same

@@ -4,6 +4,7 @@ import time
 
 import numpy as np
 
+from amr_kitchen import PlotfileCooker
 from amr_kitchen.utils import (
     header_from_indices,
     indices_from_header,
@@ -11,7 +12,7 @@ from amr_kitchen.utils import (
 )
 
 
-def parallel_combine_binary_files(args):
+def parallel_combine_binary_files(args: dict) -> list[int]:
     """
     Read two binary file and write the contents
     to a third one
@@ -49,10 +50,15 @@ def parallel_combine_binary_files(args):
                     data2 = np.fromfile(bf2, "float64", np.prod(shape2))
                     dataw = np.concatenate([data1, data2])
                     bfw.write(dataw.tobytes())
+    print(type(offsets))
     return offsets
 
 
-def combine(pck1, pck2, pltout=None, vars1=None, vars2=None):
+def combine(pck1: PlotfileCooker,
+            pck2: PlotfileCooker,
+            pltout: str = None,
+            vars1: list[str] = None,
+            vars2: list[str] = None) -> None:
     """
     Function to combine fields between plotfiles
     pck1 : PlotfileCooker instance of the first plotfile

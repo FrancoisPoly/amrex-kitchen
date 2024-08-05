@@ -1,4 +1,10 @@
-def recipe(field_indexes, box_array):
+import numpy as np
+
+# Types
+ArrayLike = np.ndarray
+
+
+def recipe(field_indexes: list[int], box_array: ArrayLike) -> ArrayLike:
     """
     Y_ratio_H2_CH4
     """

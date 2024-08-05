@@ -4,7 +4,7 @@ import sys
 from amr_kitchen import PlotfileCooker
 
 
-def main():
+def main() -> None:
     if sys.argv[1] in ['-h', '--help']:
         print(("Saves the PlotfileCooker object of a plotfile"
                " to a pickle file"))

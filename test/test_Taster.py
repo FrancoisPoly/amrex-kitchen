@@ -43,7 +43,7 @@ class TestTaste(unittest.TestCase):
         "test_assets", "bad_plotfiles", "plt_3d_missingindexes"
     )
 
-    def test_nofail_on_good_2d(self):
+    def test_nofail_on_good_2d(self) -> None:
         """
         Should not raise anything if the plotfile is
         good
@@ -52,7 +52,7 @@ class TestTaste(unittest.TestCase):
         # Errors are raised
         self.assertTrue(Taster(self.goodplotfile_2d))
 
-    def test_nofail_on_good_3d(self):
+    def test_nofail_on_good_3d(self) -> None:
         """
         Should not raise anything if the plotfile is
         good
@@ -61,7 +61,7 @@ class TestTaste(unittest.TestCase):
         # Errors are raised
         self.assertTrue(Taster(self.goodplotfile_3d))
 
-    def test_badshapes_of_boxes_2d(self):
+    def test_badshapes_of_boxes_2d(self) -> None:
         """
         Should raise a TastesBadError
         """
@@ -70,7 +70,7 @@ class TestTaste(unittest.TestCase):
         # This should just return False
         self.assertFalse(Taster(self.badbinshape_2d, nofail=True))
 
-    def test_badindexes_in_level_header_2d(self):
+    def test_badindexes_in_level_header_2d(self) -> None:
         """
         Should raise a TastesBadError
         """
@@ -80,7 +80,7 @@ class TestTaste(unittest.TestCase):
         self.assertFalse(Taster(self.badindexes_2d, nofail=True))
 
     # Voir avec Olivier
-    def test_missing_data_in_boxes_2d(self):
+    def test_missing_data_in_boxes_2d(self) -> None:
         """
         Should raise a TastesBadError
         """
@@ -90,7 +90,7 @@ class TestTaste(unittest.TestCase):
         self.assertFalse(Taster(self.missingbindata_2d, nofail=True))
 
     # Voir avec Olivier
-    def test_missing_indexes_in_level_header_2d(self):
+    def test_missing_indexes_in_level_header_2d(self) -> None:
         """
         Should raise a TastesBadError
         """
@@ -99,7 +99,7 @@ class TestTaste(unittest.TestCase):
         # This should just return False
         self.assertFalse(Taster(self.missingindexes_2d, nofail=True))
 
-    def test_badshapes_of_boxes_3d(self):
+    def test_badshapes_of_boxes_3d(self) -> None:
         """
         Should raise a TastesBadError
         """
@@ -108,7 +108,7 @@ class TestTaste(unittest.TestCase):
         # This should just return False
         self.assertFalse(Taster(self.badbinshape_3d, nofail=True))
 
-    def test_badindexes_in_level_header_3d(self):
+    def test_badindexes_in_level_header_3d(self) -> None:
         """
         Should raise a TastesBadError
         """
@@ -118,7 +118,7 @@ class TestTaste(unittest.TestCase):
         self.assertFalse(Taster(self.badindexes_3d, nofail=True))
 
     # Voir avec Olivier
-    def test_missing_data_in_boxes_3d(self):
+    def test_missing_data_in_boxes_3d(self) -> None:
         """
         Should raise a TastesBadError
         """
@@ -128,7 +128,7 @@ class TestTaste(unittest.TestCase):
         self.assertFalse(Taster(self.missingbindata_3d, nofail=True))
 
     # Voir avec Olivier
-    def test_missing_indexes_in_level_header_3d(self):
+    def test_missing_indexes_in_level_header_3d(self) -> None:
         """
         Should raise a TastesBadError
         """

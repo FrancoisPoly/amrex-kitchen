@@ -4,6 +4,7 @@ import time
 import numpy as np
 from tqdm import tqdm
 
+from amr_kitchen import PlotfileCooker
 from amr_kitchen.utils import expand_array3d, shape_from_header
 
 # from mpi4py.futures import MPIPoolExecutor
@@ -35,7 +36,7 @@ field_units = {
 }
 
 
-def increment_sum_masked(args):
+def increment_sum_masked(args: dict) -> float:
     """
     Increments sum with data from each bfile of a level
     """
@@ -64,7 +65,7 @@ def increment_sum_masked(args):
             return args["dV"] * np.sum(data[args["covering_mask"]])
 
 
-def increment_sum(args):
+def increment_sum(args: dict) -> float:
     """
     Increments sum with data from each bfile of the finest level
     """
@@ -91,7 +92,10 @@ def increment_sum(args):
             return np.sum(data) * args["dV"]
 
 
-def volume_integral(pck, field, limit_level=None, use_volfrac=False):
+def volume_integral(pck: PlotfileCooker,
+                    field: str,
+                    limit_level: int = None,
+                    use_volfrac: bool = False) -> float:
     """
     Prints the volume integral of the chosen field
     """

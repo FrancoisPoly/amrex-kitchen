@@ -9,8 +9,11 @@ from amr_kitchen import PlotfileCooker
 from amr_kitchen.utils import (expand_array3d,
                                indices_from_header)
 
+# Types
+ArrayLike = np.ndarray
 
-def readfieldfrombinfile(args):
+
+def readfieldfrombinfile(args: dict) -> tuple[int, ArrayLike]:
     """
     Read all arrays for a single field in a binary file
     """

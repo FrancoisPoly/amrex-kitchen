@@ -3,7 +3,7 @@ import numpy as np
 from .utils import expand_array
 
 
-def slice_box(args):
+def slice_box(args: dict) -> list[dict]:
     """
     Multiprocessing function reading and slicing a AMR cell
     ----
@@ -207,7 +207,7 @@ def slice_box(args):
     return output
 
 
-def plate_box(args):
+def plate_box(args: dict) -> dict:
     """
     Multiprocessing function reading a 2D AMR cell
     ----

@@ -4,6 +4,7 @@ import traceback
 
 import numpy as np
 from tqdm import tqdm
+from typing import NewType
 
 from amr_kitchen import PlotfileCooker
 from amr_kitchen.utils import (
@@ -13,10 +14,14 @@ from amr_kitchen.utils import (
     shape_from_header,
 )
 
+# Types
+# Special type to hint errors similar to TastesBadError
+ErrorClass = NewType("ErrorClass", int)
+
 
 # The prototype of this should also live somewhere as
 # it is faster than how binary files are read in colander.py
-def mp_read_binary_data(args):
+def mp_read_binary_data(args: str) -> dict:
     """
     Multiprocessing function to read binary file data
     with minimal input by using the ascii encoded
@@ -38,7 +43,7 @@ def mp_read_binary_data(args):
     return bfile_data
 
 
-def mp_fun_headers(args):
+def mp_fun_headers(args: dict) -> None | str:
     with open(args["bfile"], "rb") as bf:
         for ofs, idx, bid in zip(args["offsets"],
                                  args["indices"],
@@ -77,7 +82,7 @@ def mp_fun_headers(args):
                 return error
 
 
-def mp_fun_shape(args):
+def mp_fun_shape(args: dict) -> None | str:
     with open(args["bfile"], "rb") as bf:
         # Iterate with the index so we can infer what the
         # next binary header is
@@ -134,14 +139,14 @@ class Taster(PlotfileCooker):
 
     def __init__(
         self,
-        plt_file,
-        limit_level=None,
-        binary_headers=True,
-        binary_shape=True,
-        binary_data=False,
-        boxes_coordinates=False,
-        nofail=False,
-        verbose=None,
+        plt_file: str,
+        limit_level: int = None,
+        binary_headers: bool = True,
+        binary_shape: bool = True,
+        binary_data: bool = False,
+        boxes_coordinates: bool = False,
+        nofail: bool = False,
+        verbose: bool = None,
     ):
         """
         Constructor for the plotfile tester
@@ -192,14 +197,14 @@ class Taster(PlotfileCooker):
                 tb = traceback.format_exc()
                 print(tb)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         Overiding the bool method of the class
         to return False if the plotfile is Bad
         """
         return self.isgood
 
-    def taste(self):
+    def taste(self) -> None:
         """
         Main functions validating the sanity of the plotfile
         ___
@@ -259,7 +264,7 @@ class Taster(PlotfileCooker):
                     )
                 self.taste_binary_data()
 
-    def taste_plotfile_structure(self):
+    def taste_plotfile_structure(self) -> None:
         """
         Check that no binary file is missing
         """
@@ -273,7 +278,7 @@ class Taster(PlotfileCooker):
                     error = f"Missing file {bfile} at Level {lv}"
                     self.raise_error(TastesBadError, error)
 
-    def taste_box_coordinates(self):
+    def taste_box_coordinates(self) -> None:
         """
         Check that the box coordinates match
         their indexes
@@ -335,7 +340,7 @@ class Taster(PlotfileCooker):
             if self.v > 0:
                 print("Done!")
 
-    def taste_binary_headers(self):
+    def taste_binary_headers(self) -> None:
         """
         Method to validate that the indices and shape
         of the binary headers match those in the
@@ -371,7 +376,7 @@ class Taster(PlotfileCooker):
                 if mp_out is not None:
                     self.raise_error(TastesBadError, mp_out)
 
-    def taste_binary_shape(self):
+    def taste_binary_shape(self) -> None:
         """
         Check that the number of data bytes between
         binary headers matches what is expected from the
@@ -409,7 +414,7 @@ class Taster(PlotfileCooker):
             if self.v > 0:
                 print("Done!")
 
-    def taste_binary_data(self):
+    def taste_binary_data(self) -> None:
         """
         It is super long to read the binary data so
         this tests that both the max/mins match those
@@ -503,7 +508,7 @@ class Taster(PlotfileCooker):
                             )
                             self.raise_error(TastesBadError, error)
 
-    def raise_error(self, error, message):
+    def raise_error(self, error: ErrorClass, message: str) -> None:
         """
         A method to wrap arround raise statements to
         allow printing errors instead if raising to

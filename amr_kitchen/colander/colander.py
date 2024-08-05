@@ -6,8 +6,11 @@ import numpy as np
 
 from amr_kitchen import PlotfileCooker
 
+# Types
+ArrayLike = np.ndarray
 
-def parallel_strain_3d(args: dict):
+
+def parallel_strain_3d(args: dict) -> list[int]:
     """
     Cook a single cell binary file
     Multiprocessing function
@@ -42,7 +45,7 @@ def parallel_strain_3d(args: dict):
     return offsets
 
 
-def parallel_strain_2d(args):
+def parallel_strain_2d(args: dict) -> list[int]:
     """
     Cook a single cell binary file
     Multiprocessing function
@@ -84,11 +87,11 @@ class Colander(PlotfileCooker):
 
     def __init__(
         self,
-        plotfile=None,
-        limit_level=None,
-        output=None,
-        variables=None,
-        allow_missing=True,
+        plotfile: str = None,
+        limit_level: int = None,
+        output: str = None,
+        variables: list[str] = None,
+        allow_missing: bool = True,
     ):
         """
         Constructor for the Colander data container
@@ -119,7 +122,7 @@ class Colander(PlotfileCooker):
                     if not allow_missing:
                         raise ValueError(f"Field {v} not found in file")
 
-    def strain(self):
+    def strain(self) -> None:
         """
         Save the strained plotfile
         """
@@ -182,7 +185,7 @@ class Colander(PlotfileCooker):
         # Rewrite the global header
         self.write_strained_global_header()
 
-    def update_cell_header(self, lv, cell_header_r, new_offsets):
+    def update_cell_header(self, lv: int, cell_header_r: str, new_offsets: ArrayLike) -> None:
         """
         Update the new Cell header
         """
@@ -234,7 +237,7 @@ class Colander(PlotfileCooker):
                 max_vals = np.array(line)
                 ch_w.write(",".join(max_vals[self.kept_fields]) + ",\n")
 
-    def write_strained_global_header(self):
+    def write_strained_global_header(self) -> None:
         """
         Write the plotfile header for the plotfile with filtered
         data
@@ -297,6 +300,3 @@ class Colander(PlotfileCooker):
                         hfile.write(f"{box[d][0]} {box[d][1]}\n")
                 # Write the Level path info
                 hfile.write(f"Level_{lv}/Cell\n")
-
-a = Colander("./test_assets/example_plt_3d",output="./amr_kitchen/colander/temp",variables=["temp"])
-a.strain()

@@ -1,5 +1,7 @@
 import numpy as np
 
+# Types
+ArrayLike = np.ndarray
 
 class TastesBadError(Exception):
     """
@@ -10,7 +12,7 @@ class TastesBadError(Exception):
     def __init__(self, value):
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self.value)
 
 
@@ -24,7 +26,7 @@ class BadTastingBinariesError(Exception):
     pass
 
 
-def expand_array3d(arr, factor):
+def expand_array3d(arr, factor: int) -> ArrayLike:
     """
     Data reading utility
     ----
@@ -41,7 +43,7 @@ def expand_array3d(arr, factor):
     )
 
 
-def shape_from_header(h):
+def shape_from_header(h: str) -> list[int]:
     """
     Infer the shape the box and the number of fields
     from the header in a plotfile binary file
@@ -59,7 +61,7 @@ def shape_from_header(h):
     return total_shape
 
 
-def indices_from_header(h):
+def indices_from_header(h: str) -> list[ArrayLike]:
     """
     Infer the shape the box and the number of fields
     from the header in a plotfile binary file
@@ -75,7 +77,7 @@ def indices_from_header(h):
     return [start, stop]
 
 
-def header_from_indices(start, stop, nfields):
+def header_from_indices(start: list[int], stop: list[int], nfields: int) -> bytes:
     """
     Creates a binary file header from the box
     global indices and number of fields
@@ -91,7 +93,9 @@ def header_from_indices(start, stop, nfields):
     return header.encode("ascii")
 
 
-def indexes_and_shape_from_header(header):
+def indexes_and_shape_from_header(header: bytes) -> tuple[list[list],
+                                                          list[list],
+                                                          tuple[int, ...]]:
     """
     This takes the byte string of a box header in a plotfile binary
     file and infers the indexes of the box and the number of fields
@@ -110,7 +114,7 @@ def indexes_and_shape_from_header(header):
     return [start, stop], tuple(shape)
 
 
-def shapes_from_header_vardims(header, ndim):
+def shapes_from_header_vardims(header: bytes, ndim: int) -> list[int]:
     """
     Function to infer the data shape from the
     binary header which also words for 2D
@@ -131,7 +135,7 @@ def shapes_from_header_vardims(header, ndim):
     return total_shape
 
 
-def global2local(indices, refindices, n_ghost=1):
+def global2local(indices: list[list], refindices: list[list], n_ghost: int=1) -> list[list]:
     """
     Convert global box indexes to indexes in a
     ghost cell padded reference box

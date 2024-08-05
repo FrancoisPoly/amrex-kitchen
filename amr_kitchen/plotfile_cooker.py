@@ -5,23 +5,32 @@ import numpy as np
 
 from amr_kitchen.utils import TastesBadError
 
+from io import TextIOWrapper
+
+# Types
+ArrayLike = np.ndarray
+
 
 class PlotfileCooker(object):
 
     def __init__(
         self,
-        plotfile,
-        limit_level=None,
-        header_only=False,
-        validate_mode=False,
-        maxmins=False,
-        ghost=False,
-    ):
+        plotfile: str,
+        limit_level: int = None,
+        header_only: bool = False,
+        validate_mode: bool = False,
+        maxmins: bool = False,
+        ghost: bool = False,
+    ) -> None:
         """
         Parse the header data and save as attributes
+
+        plotfile: Amrex file to analyse
+        header_only: If set to False, analyses the header data for errors
+        validate_mode: If set to True, raises custom TastesBadError
+        maxmins: If set to True, collects all level's mins and maxs data value
+        ghost: If set to True, compute the ghost boxes map around each box
         """
-        # TODO: Add a description of what the argument do to
-        # the docstring
         self.pfile = plotfile
         filepath = os.path.join(plotfile, "Header")
         with open(filepath) as hfile:
@@ -116,7 +125,7 @@ class PlotfileCooker(object):
                      """
                     ))
 
-    def __eq__(self, other):
+    def __eq__(self, other: "PlotfileCooker") -> bool:
         """
         Overload the '==' operator to use it to test for plotfile
         compatibility. This tests that both plotfiles have the same
@@ -145,7 +154,7 @@ class PlotfileCooker(object):
         #     if
         return True
 
-    def read_boxes(self, hfile):
+    def read_boxes(self, hfile: TextIOWrapper) -> tuple[list[float], list[list]]:
         """
         Read the AMR boxes geometry in the base header file
         """
@@ -186,7 +195,7 @@ class PlotfileCooker(object):
             boxes.append(lv_boxes)
         return points, boxes
 
-    def read_cell_headers(self, maxmins, validate_mode):
+    def read_cell_headers(self, maxmins: bool, validate_mode: bool) -> list[dict]:
         """
         Read the cell header data and the maxs/mins for a given level
         """
@@ -258,7 +267,7 @@ class PlotfileCooker(object):
             cells.append(lvcells)
         return cells
 
-    def compute_box_array(self):
+    def compute_box_array(self) -> tuple[list[ArrayLike], list[ArrayLike]]:
         """
         Compute a Nx * Ny * Nz array defining the
         adjacency of the boxes.
@@ -289,7 +298,7 @@ class PlotfileCooker(object):
             box_array_indices.append(lv_barray_indices)
         return box_arrays, box_array_indices
 
-    def compute_ghost_map(self):
+    def compute_ghost_map(self) -> list[list]:
         """
         This computes indices of the boxes adjacent
         to a given box. Indices have shape 3x2 for the
@@ -333,7 +342,7 @@ class PlotfileCooker(object):
             ghost_map.append(lv_gmap)
         return ghost_map
 
-    def field_index(self, field):
+    def field_index(self, field: str) -> int:
         """return the index of a data field"""
         for i, f in enumerate(self.fields):
             if f == field:
@@ -344,7 +353,7 @@ class PlotfileCooker(object):
                              {', '.join(self.fields.keys())} and grid_level"""
         )
 
-    def make_dir_tree(self, outpath, limit_level=None):
+    def make_dir_tree(self, outpath: str, limit_level: int = None) -> None:
         """
         Re-Create the tree structure of the plotfile in :outpath:
         """
@@ -361,7 +370,7 @@ class PlotfileCooker(object):
             # shutil.copy(os.path.join(self.pfile, pth + '_H'),
             #            os.path.join(outpath, level_dir))
 
-    def bybinfile(self, lv):
+    def bybinfile(self, lv: int):
         """
         Iterate over header data at lv
         by individual binary files
@@ -379,7 +388,7 @@ class PlotfileCooker(object):
                 indexes[bf_indexes],
             )
 
-    def bybinfile_indexed(self, lv):
+    def bybinfile_indexed(self, lv: int):
         """
         Iterate over header data at lv
         by individual binary files
@@ -393,7 +402,7 @@ class PlotfileCooker(object):
             bf_indexes = box_indexes[bfiles == bf]
             yield (bf, offsets[bf_indexes], indexes[bf_indexes], box_indexes)
 
-    def bybox(self, lv):
+    def bybox(self, lv: int):
         """
         Iterate over header data for evey box
         """
@@ -404,7 +413,7 @@ class PlotfileCooker(object):
         for bf, idx, off in zip(bfiles, indexes, offsets):
             yield {"indexes": idx, "bfile": bf, "off": off}
 
-    def byboxcompared(self, other, lv):
+    def byboxcompared(self, other: "PlotfileCooker", lv: int) -> ...: # Huh ?
         """
         Generator to iterate over the boxes in two plotfiles for
         a given AMR level: lv
@@ -426,7 +435,7 @@ class PlotfileCooker(object):
             }
             yield output
 
-    def boxesfromindexes(self, indexes):
+    def boxesfromindexes(self, indexes: list[list]) -> list[list]:
         """
         Give a list if indexes with shape n_levels x [n_indexes_at_level]
         Compute the corresponding bounding boxes using the header data
@@ -461,7 +470,10 @@ class PlotfileCooker(object):
             all_boxes.append(lv_boxes)
         return all_boxes
 
-    def writehdrnewboxes(self, pfdir, boxes, fields):
+    def writehdrnewboxes(self,
+                         pfdir: str,
+                         boxes: list[list],
+                         fields: list[str]) -> None:
         """
         Write the global header with new boxes
         """
@@ -528,7 +540,7 @@ class PlotfileCooker(object):
                 # Write the Level path info
                 hfile.write(f"Level_{lv}/Cell\n")
 
-    def unique_box_shapes(self):
+    def unique_box_shapes(self) -> tuple[int, ...]:
         """
         Find the unique box shape tuples
         for each level

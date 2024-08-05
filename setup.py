@@ -32,6 +32,7 @@ setuptools.setup(
             "pestle = amr_kitchen.pestle.cli:main",
             "marinate = amr_kitchen.marinate:main",
             "minuterie = amr_kitchen.minuterie:main",
+            "whip = amr_kitchen.whip.cli:main",
         ]
     },
 )

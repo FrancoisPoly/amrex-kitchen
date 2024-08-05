@@ -10,7 +10,7 @@ class TestSlice(unittest.TestCase):
     pfile3d = os.path.join("test_assets", "example_plt_3d")
     drm19 = os.path.join("test_assets", "drm19.yaml")
 
-    def test_heat_release_recipe(self):
+    def test_heat_release_recipe(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_hrr"),
@@ -28,7 +28,7 @@ class TestSlice(unittest.TestCase):
 
         shutil.rmtree(os.path.join("test", "chef_test_hrr"))
 
-    def test_enthalpy_recipe(self):
+    def test_enthalpy_recipe(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_ent"),
@@ -46,7 +46,7 @@ class TestSlice(unittest.TestCase):
 
         shutil.rmtree(os.path.join("test", "chef_test_ent"))
 
-    def test_reaction_rate_recipe(self):
+    def test_reaction_rate_recipe(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_Ri"),
@@ -66,7 +66,7 @@ class TestSlice(unittest.TestCase):
 
         shutil.rmtree(os.path.join("test", "chef_test_Ri"))
 
-    def test_1sp_reaction_rate_recipe(self):
+    def test_1sp_reaction_rate_recipe(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_Ri"),
@@ -85,7 +85,7 @@ class TestSlice(unittest.TestCase):
 
         shutil.rmtree(os.path.join("test", "chef_test_Ri"))
 
-    def test_diffusion_coefficients_recipe(self):
+    def test_diffusion_coefficients_recipe(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_Di"),
@@ -104,7 +104,7 @@ class TestSlice(unittest.TestCase):
 
         shutil.rmtree(os.path.join("test", "chef_test_Di"))
 
-    def test_user_sarray_recipe(self):
+    def test_user_sarray_recipe(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_user_sarr"),
@@ -125,7 +125,7 @@ class TestSlice(unittest.TestCase):
             self.assertTrue("omega_ratio_H2_O2" in hfile.readline())
         shutil.rmtree(os.path.join("test", "chef_test_user_sarr"))
 
-    def test_user_plotfile_recipe(self):
+    def test_user_plotfile_recipe(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test",
@@ -147,7 +147,7 @@ class TestSlice(unittest.TestCase):
             self.assertTrue("Y_ratio_H2_CH4" in hfile.readline())
         shutil.rmtree(os.path.join("test", "chef_test_user_pfile"))
 
-    def test_byreaction_field(self):
+    def test_byreaction_field(self) -> None:
         plot_chef = Chef(
             self.pfile3d,
             outfile=os.path.join("test", "chef_test_byreaction"),
