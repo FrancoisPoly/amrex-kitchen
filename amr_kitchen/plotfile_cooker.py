@@ -102,6 +102,17 @@ class LevelDataSelector(object):
                                self.boxes[key]['offsets'],
                                self.farg)
 
+class CustomDict(dict):
+    def __init__(self, pfile: str):
+        self.pfile = pfile
+
+    def __getitem__(self, field):
+        if field not in self:
+            raise ValueError(f"""Field '{field}' was not found in file. 
+                             Available fields in {self.pfile.split('/')[-1]} are:
+                             {', '.join(self.keys())} and grid_level""")
+        return super().__getitem__(field)
+
 class PlotfileCooker(object):
 
     def __init__(self, 
@@ -132,7 +143,7 @@ class PlotfileCooker(object):
             self.version = hfile.readline()
             # field names
             self.nvars = int(hfile.readline())
-            self.fields = {}
+            self.fields = CustomDict(self.pfile)
             for i in range(self.nvars):
                 self.fields[hfile.readline().replace('\n', '')] = i
             # General data

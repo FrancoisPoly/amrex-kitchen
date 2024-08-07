@@ -118,7 +118,8 @@ class Taster(PlotfileCooker):
     """
     A class to test the validity of AMReX plotfiles
     """
-    def __init__(self, plt_file,
+    def __init__(self, 
+                 plt_file,
                  limit_level=None,
                  binary_headers=True,
                  binary_shape=True,
