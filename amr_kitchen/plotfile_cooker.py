@@ -3,7 +3,7 @@ import shutil
 import traceback
 import multiprocessing
 import numpy as np
-from tqdm import tqdm
+from amr_kitchen.menu.menu_presentation import menu
 from amr_kitchen.utils import TastesBadError, shape_from_header
 
 def mp_read_box_single_field(args):
@@ -103,14 +103,17 @@ class LevelDataSelector(object):
                                self.farg)
 
 class CustomDict(dict):
-    def __init__(self, pfile: str):
+
+    def __init__(self, pfile: str) -> None:
         self.pfile = pfile
 
-    def __getitem__(self, field):
+    def __getitem__(self, field: str) -> str:
+        error_message = [
+            f"""Field '{field}' was not found in file {self.pfile.split('/')[-1]}.""",
+            f"""\n\n{"".join(li for li in menu(self))}"""
+        ]
         if field not in self:
-            raise ValueError(f"""Field '{field}' was not found in file. 
-                             Available fields in {self.pfile.split('/')[-1]} are:
-                             {', '.join(self.keys())} and grid_level""")
+            raise ValueError(f"""{"".join(li for li in error_message)}""")
         return super().__getitem__(field)
 
 class PlotfileCooker(object):
