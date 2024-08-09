@@ -3,73 +3,33 @@ import re
 
 # Database in {Acronym: (Regular Expression, Definition, Units)} format
 field_info = {
-    "avg_pressure": (
-        r"^avg_pressure$",
-        "Cell-averaged pressure from the node-centers ",
-        "[Pa]",
-    ),
-    "density": (r"^density$", "Density ", "[kg/m^3]"),
-    "diffcoeff": (
-        r"^D_+.",
-        "Mixture-averaged diffusion coefficients (mass) ",
-        "[m^2/s]",
-    ),
-    "DistributionMap": (
-        r"^DistributionMap$",
-        "The MPI-rank of each box ",
-        "[-]"
-    ),
-    "divu": (r"^divu$", "Divergence of the velocity field ", "[1 / s]"),
-    "enstrophy": (
-        r"^enstrophy$",
-        "Enstrophy as 0.5 * Rho * |omega^2| ",
-        "[kg / m s^2]",
-    ),
-    "FunctCall": (
-        r"^FunctCall$",
-        "Number of function calls to chemistry ",
-        "[-]"
-    ),
-    "gradp": (r"^gradp+\w$", "Local pressure gradient ", "[Pa / m]"),
-    "HeatRelease": (
-        r"^HeatRelease$",
-        "Heat release rate from chem. reactions ",
-        "[W / m^3]",
-    ),
-    "I_R": (r"^I_R\(.+\)$", "Species reaction rates ", "[kg / s m^3]"),
-    "kinetic_energy": (
-        r"^kinetic_energy$",
-        "Kinetic energy as 0.5 * Rho * |U^2| ",
-        "[kg / m s^2]",
-    ),
-    "lambda": (r"^lambda$", "Thermal diffusivity ", "[W / m / K]"),
-    "mag_vort": (r"^mag_vort$", "Vorticity magnitude ", "[1 / s]"),
-    "mass_fractions": (r"^mass_fractions$", "Species mass fractions ", "[-]"),
-    "mixture_fraction": (
-        r"^mixture_fraction$",
-        "Mixture fraction based on Bilger’s formulation ",
-        "[-]",
-    ),
-    "mole_fraction": (r"^mole_fraction$", "Species mole fractions ", "[-]"),
-    "progress_variable": (
-        r"^progress_variable$",
-        "User defined progress variable ",
-        "[-]",
-    ),
-    "Qcrit": (r"^Qcrit$", "Q-Criterion ", "[-]"),
-    "rhoh": (r"^rhoh$", "Density * Specific Enthalpy ", "[J / m^3]"),
-    "RhoRT": (r"^RhoRT$", "Density * (R / M_bar) * Temperature ", "[Pa]"),
-    "temp": (r"^temp$", "Temperature ", "[K]"),
-    "velocity": (r"^\w+_velocity$", "Velocity ", "[m/s]"),
-    "viscosity": (r"^viscosity$", "Mixture viscosity ", "[Pa-s]"),
-    "volFrac": (
-        r"^volFrac$",
-        "Volume fraction at embedded boundaries ",
-        "[-]"
-        ),
-    "vorticity": (r"^vorticity$", "Vortricity components ", "[1 / s]"),
-    "X": (r"^X\(.+\)$", "Species mole fractions ", "[-]"),
-    "Y": (r"^Y\(.+\)$", "Species mass fractions ", "[-]"),
+    "avg_pressure": r"^avg_pressure$",
+    "density": r"^density$",
+    "diffcoeff": r"^D_+.",
+    "DistributionMap": r"^DistributionMap$",
+    "divu": r"^divu$",
+    "enstrophy": r"^enstrophy$",
+    "FunctCall": r"^FunctCall$",
+    "gradp": r"^gradp+\w$",
+    "HeatRelease": r"^HeatRelease$",
+    "I_R": r"^I_R\(.+\)$",
+    "kinetic_energy": r"^kinetic_energy$",
+    "lambda": r"^lambda$",
+    "mag_vort": r"^mag_vort$",
+    "mass_fractions": r"^mass_fractions$",
+    "mixture_fraction": r"^mixture_fraction$",
+    "mole_fraction": r"^mole_fraction$",
+    "progress_variable": r"^progress_variable$",
+    "Qcrit": r"^Qcrit$",
+    "rhoh": r"^rhoh$",
+    "RhoRT": r"^RhoRT$",
+    "temp": r"^temp$",
+    "velocity": r"^\w+_velocity$",
+    "viscosity": r"^viscosity$",
+    "volFrac": r"^volFrac$",
+    "vorticity": r"^vorticity$",
+    "X": r"^X\(.+\)$",
+    "Y": r"^Y\(.+\)$",
 }
 
 
@@ -137,7 +97,7 @@ def variables_finder(fields: dict) -> list[str]:
     list_fields = []
     for field in list(fields):
         for key in field_info:
-            regexp = re.compile(field_info[key][0])
+            regexp = re.compile(field_info[key])
             if regexp.search(field):
                 if key not in list_fields:
                     list_fields.append(key)
@@ -148,13 +108,13 @@ def variables_finder(fields: dict) -> list[str]:
         else:
             if field not in list_fields:
                 list_fields.append(field)
-                field_info[field] = (field, "Units unknown", "[...]")
+                field_info[field] = field
     list_fields.sort(key=str.lower)
     return list_fields
 
 
 def species_finder(fields: dict) -> list[str]:
-    regexp = re.compile(field_info["Y"][0])
+    regexp = re.compile(field_info["Y"])
     Y_species = []
     for field in fields:
         if regexp.search(field):
